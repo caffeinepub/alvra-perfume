@@ -1,36 +1,40 @@
 # ALVRA Perfume
 
 ## Current State
-New project. No existing frontend or backend code.
+The app is a single-page perfume marketing website with:
+- Sticky header with logo, nav, cart icon
+- Hero section, Dino game, product cards, launch offer, EMI, why choose, reviews, Instagram, footer
+- Backend: product catalog, cart, orders, coupon validation
+- No authentication or admin functionality
 
 ## Requested Changes (Diff)
 
 ### Add
-- Full ALVRA perfume brand website with 10 sections
-- Sticky header with centered logo, left hamburger menu, right cart icon, nav links (Home, Shop, Play & Win, Offers, Contact)
-- Hero section: black premium background, large perfume image, "BE UNFORGETTABLE" headline, subtitle, Shop Now + Play & Win buttons
-- Dino game section: canvas-based game in a modal popup with dark overlay; player controls a dino jumping over cacti; score tracking; on game over, show reward popup with coupon code based on score
-- Reward system: 500pts=₹20 OFF (DINO20), 1000pts=₹50 OFF (DINO50), 2000pts=₹100 OFF (DINO100), 3000pts=₹150 OFF (DINO150), 5000pts=₹200 OFF (DINO200), 10000pts=FREE PERFUME (FREEALVRA)
-- Product section: 4 perfume cards (Men Formal, Men Party, Women Formal, Women Party) with image, name, description, ₹799 price, Buy button
-- Launch Offer section: ₹199 launch offer with bundled items list
-- EMI / Buy Now Pay Later section: ₹199 today + ₹150/week breakdown
-- Why Choose ALVRA: 4 trust signal bullet points
-- Customer Reviews: testimonial cards with star ratings
-- Instagram section: "Follow Our Journey" with placeholder grid
-- Footer: brand name, WhatsApp/email/Instagram contact, nav links (Privacy Policy, Terms, Support)
+- **Sign Up page** (`/signup`): new user registration with email + password
+- **Login page** (`/login`): existing user login with email + password; after login redirect to main site (or admin if admin role)
+- **Admin page** (`/admin`): only accessible to the designated owner/admin; allows drag-and-drop editing of website content (hero text, section text blocks, product images/names/prices, section images)
+- **Admin content management backend**: store editable content blocks (key-value text and image URL pairs) that the frontend reads dynamically; update content via admin-only calls
+- **Authorization**: role-based access control using the `authorization` Caffeine component; one hardcoded admin principal
 
 ### Modify
-- None
+- Main website sections (Hero, Products, Launch Offer, etc.) to read content from backend editable content store instead of hardcoded values where applicable
+- Header to show Login/Logout button and optionally Admin link if user is admin
 
 ### Remove
-- None
+- Nothing removed
 
 ## Implementation Plan
-1. Generate perfume product images (hero + 4 product images)
-2. Generate Motoko backend with cart/product data support
-3. Build React frontend with all 10 sections
-4. Implement Dino game using Canvas API inside a modal
-5. Implement reward/coupon popup on game over
-6. Wire cart icon with item count state
-7. Add smooth scroll navigation from header links
-8. Deploy
+1. Select `authorization` component for role-based access control
+2. Generate updated Motoko backend with:
+   - Authorization integration (admin role check)
+   - `ContentBlock` type: `{ key: Text; value: Text }` for text and image URL storage
+   - `getContent()`: returns all content blocks (public query)
+   - `updateContent(key, value)`: admin-only update
+   - `getAdminPrincipal()`: returns whether caller is admin
+3. Frontend:
+   - Add React Router for `/`, `/login`, `/signup`, `/admin` routes
+   - Login page: email/password form using Internet Identity / auth hook
+   - Signup page: registration form
+   - Admin page: protected route; drag-and-drop UI with editable text blocks and image upload areas per section (hero title, hero subtitle, product names, prices, images, offer text, etc.)
+   - Admin drag-and-drop editor: simple section panels that can be reordered and each panel allows inline text edit + image upload (drag image file to replace)
+   - Header: show Login button; if logged in show user avatar + logout; if admin show "Admin" link

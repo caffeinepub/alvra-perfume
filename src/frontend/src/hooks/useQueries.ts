@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CartItem, Product } from "../backend.d";
+import type {
+  CartItem,
+  ContentBlock,
+  Product,
+  UserProfile,
+} from "../backend.d";
 import { useActor } from "./useActor";
 
 export function useInitializeProducts() {
@@ -59,6 +64,70 @@ export function useValidateCoupon() {
     mutationFn: async (code: string) => {
       if (!actor) throw new Error("Actor not available");
       return actor.validateCoupon(code);
+    },
+  });
+}
+
+export function useIsAdmin() {
+  const { actor, isFetching } = useActor();
+  return useQuery<boolean>({
+    queryKey: ["isAdmin"],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerAdmin();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetContent() {
+  const { actor, isFetching } = useActor();
+  return useQuery<ContentBlock[]>({
+    queryKey: ["content"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getContent();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateContent() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: string }) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.updateContent(key, value);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["content"] });
+    },
+  });
+}
+
+export function useGetCallerProfile() {
+  const { actor, isFetching } = useActor();
+  return useQuery<UserProfile | null>({
+    queryKey: ["callerProfile"],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useSaveCallerProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (profile: UserProfile) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.saveCallerUserProfile(profile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["callerProfile"] });
     },
   });
 }

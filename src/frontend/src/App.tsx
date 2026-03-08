@@ -10,13 +10,17 @@ import {
   Heart,
   Instagram,
   Leaf,
+  LogIn,
+  LogOut,
   Mail,
   Menu,
   MessageCircle,
   Package,
+  Settings,
   ShoppingCart,
   Sparkles,
   Star,
+  User,
   X,
   Zap,
 } from "lucide-react";
@@ -25,11 +29,35 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DinoGameModal } from "./components/DinoGame";
 import { useActor } from "./hooks/useActor";
+import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import {
   useAddToCart,
   useGetCart,
   useInitializeProducts,
+  useIsAdmin,
 } from "./hooks/useQueries";
+import AdminPage from "./pages/AdminPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+
+// ─── Simple client-side router ───────────────────────────────────────────────
+function useRouter() {
+  const [path, setPath] = useState(() => window.location.pathname);
+
+  useEffect(() => {
+    const handlePop = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, []);
+
+  const navigate = (to: string) => {
+    window.history.pushState({}, "", to);
+    setPath(to);
+    window.scrollTo({ top: 0 });
+  };
+
+  return { path, navigate };
+}
 
 // ─── Fade-in wrapper ───────────────────────────────────────────────────────────
 function FadeIn({
@@ -143,9 +171,17 @@ const REVIEWS = [
 ];
 
 // ─── Header ───────────────────────────────────────────────────────────────────
-function Header({ cartCount }: { cartCount: number }) {
+function Header({
+  cartCount,
+  onNavigate,
+}: {
+  cartCount: number;
+  onNavigate: (path: string) => void;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { identity, clear, isLoggingIn } = useInternetIdentity();
+  const { data: isAdmin } = useIsAdmin();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -165,6 +201,12 @@ function Header({ cartCount }: { cartCount: number }) {
     { label: "Offers", id: "offers", ocid: "nav.offers.link" },
     { label: "Contact", id: "contact", ocid: "nav.contact.link" },
   ];
+
+  const handleLogout = () => {
+    clear();
+    toast.success("Signed out successfully.");
+    setMenuOpen(false);
+  };
 
   return (
     <>
@@ -205,13 +247,18 @@ function Header({ cartCount }: { cartCount: number }) {
 
           {/* Center logo */}
           <div className="absolute left-1/2 -translate-x-1/2">
-            <h1 className="font-luxury text-2xl md:text-3xl font-bold text-gold gold-glow tracking-[0.3em]">
+            <button
+              type="button"
+              onClick={() => onNavigate("/")}
+              className="font-luxury text-2xl md:text-3xl font-bold text-gold gold-glow tracking-[0.3em]"
+              data-ocid="header.logo.link"
+            >
               ALVRA
-            </h1>
+            </button>
           </div>
 
-          {/* Desktop nav right + cart */}
-          <div className="flex items-center gap-6">
+          {/* Desktop nav right + auth + cart */}
+          <div className="flex items-center gap-3">
             <nav className="hidden md:flex items-center gap-6">
               {navLinks.slice(2).map((link) => (
                 <button
@@ -225,6 +272,44 @@ function Header({ cartCount }: { cartCount: number }) {
                 </button>
               ))}
             </nav>
+
+            {/* Auth buttons */}
+            {identity ? (
+              <div className="hidden md:flex items-center gap-2">
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigate("/admin")}
+                    className="flex items-center gap-1.5 text-xs text-gold hover:text-gold-bright transition-colors px-3 py-1.5 rounded-lg border border-gold-dim hover:bg-gold/10"
+                    data-ocid="header.admin.link"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    Admin
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-gold transition-colors px-3 py-1.5 rounded-lg hover:bg-obsidian-3"
+                  data-ocid="header.logout.button"
+                  disabled={isLoggingIn}
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onNavigate("/login")}
+                className="hidden md:flex items-center gap-1.5 text-xs text-gold hover:text-gold-bright transition-colors px-3 py-1.5 rounded-lg border border-gold-dim hover:bg-gold/10"
+                data-ocid="header.login.link"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                Sign In
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => scrollTo("shop")}
@@ -286,6 +371,57 @@ function Header({ cartCount }: { cartCount: number }) {
                   </button>
                 ))}
               </nav>
+
+              {/* Mobile auth */}
+              <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2">
+                {identity ? (
+                  <>
+                    <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground text-sm">
+                      <User className="w-4 h-4 text-gold" />
+                      <span className="text-gold text-xs truncate">
+                        {identity.getPrincipal().toString().slice(0, 20)}…
+                      </span>
+                    </div>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onNavigate("/admin");
+                        }}
+                        className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-3 rounded-lg transition-all text-sm"
+                        data-ocid="header.mobile_admin.link"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Admin Panel
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-4 py-3 text-muted-foreground hover:text-gold hover:bg-obsidian-3 rounded-lg transition-all text-sm"
+                      data-ocid="header.mobile_logout.button"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onNavigate("/login");
+                    }}
+                    className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-3 rounded-lg transition-all text-sm font-medium"
+                    data-ocid="header.mobile_login.link"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Sign In
+                  </button>
+                )}
+              </div>
+
               <div className="mt-auto pt-8 border-t border-border">
                 <p className="text-xs text-muted-foreground text-center">
                   Premium Fragrances
@@ -1088,8 +1224,12 @@ function Footer() {
   );
 }
 
-// ─── Main App ─────────────────────────────────────────────────────────────────
-export default function App() {
+// ─── Main Home Page ───────────────────────────────────────────────────────────
+function HomePage({
+  onNavigate,
+}: {
+  onNavigate: (path: string) => void;
+}) {
   const { actor } = useActor();
   const { data: cartItems = [] } = useGetCart();
   const addToCart = useAddToCart();
@@ -1129,17 +1269,7 @@ export default function App() {
 
   return (
     <div className="bg-obsidian min-h-screen">
-      <Toaster
-        theme="dark"
-        toastOptions={{
-          style: {
-            background: "oklch(0.12 0 0)",
-            border: "1px solid oklch(0.78 0.13 75 / 0.3)",
-            color: "oklch(0.94 0.02 85)",
-          },
-        }}
-      />
-      <Header cartCount={cartCount} />
+      <Header cartCount={cartCount} onNavigate={onNavigate} />
       <main>
         <HeroSection />
         <GameSection />
@@ -1152,5 +1282,68 @@ export default function App() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+// ─── Root App with routing ────────────────────────────────────────────────────
+export default function App() {
+  const { path, navigate } = useRouter();
+
+  return (
+    <>
+      <Toaster
+        theme="dark"
+        toastOptions={{
+          style: {
+            background: "oklch(0.12 0 0)",
+            border: "1px solid oklch(0.78 0.13 75 / 0.3)",
+            color: "oklch(0.94 0.02 85)",
+          },
+        }}
+      />
+      <AnimatePresence mode="wait">
+        {path === "/login" ? (
+          <motion.div
+            key="login"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <LoginPage onNavigate={navigate} />
+          </motion.div>
+        ) : path === "/signup" ? (
+          <motion.div
+            key="signup"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <SignupPage onNavigate={navigate} />
+          </motion.div>
+        ) : path === "/admin" ? (
+          <motion.div
+            key="admin"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AdminPage onNavigate={navigate} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <HomePage onNavigate={navigate} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

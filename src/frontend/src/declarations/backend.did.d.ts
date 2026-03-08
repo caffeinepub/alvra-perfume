@@ -11,7 +11,7 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface CartItem { 'productId' : bigint, 'quantity' : bigint }
-export interface Coupon { 'code' : string, 'discountAmount' : bigint }
+export interface ContentBlock { 'key' : string, 'value' : string }
 export interface Order {
   'id' : bigint,
   'customerName' : string,
@@ -28,19 +28,37 @@ export interface Product {
   'category' : string,
   'price' : bigint,
 }
+export interface UserProfile { 'name' : string }
+export type UserRole = { 'admin' : null } |
+  { 'user' : null } |
+  { 'guest' : null };
 export interface _SERVICE {
+  '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addToCart' : ActorMethod<[bigint, bigint], undefined>,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'clearCart' : ActorMethod<[], undefined>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCart' : ActorMethod<[], Array<CartItem>>,
+  'getContent' : ActorMethod<[], Array<ContentBlock>>,
+  'getContentByKey' : ActorMethod<[string], [] | [string]>,
   'getOrders' : ActorMethod<[], Array<Order>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'initializeProducts' : ActorMethod<[], undefined>,
+  'isAdmin' : ActorMethod<[], boolean>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
   'placeOrder' : ActorMethod<
     [bigint, bigint, [] | [string], string, string],
     Order
   >,
   'removeFromCart' : ActorMethod<[bigint], undefined>,
-  'validateCoupon' : ActorMethod<[string], Coupon>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateContent' : ActorMethod<[string, string], undefined>,
+  'validateCoupon' : ActorMethod<
+    [string],
+    { 'code' : string, 'discountAmount' : bigint }
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

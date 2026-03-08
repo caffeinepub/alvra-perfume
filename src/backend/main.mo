@@ -4,9 +4,17 @@ import Text "mo:core/Text";
 import Nat "mo:core/Nat";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
+import Migration "migration";
+import Iter "mo:core/Iter";
+import Bool "mo:core/Bool";
+import AccessControl "authorization/access-control";
+import MixinAuthorization "authorization/MixinAuthorization";
 
+// Specify the data migration function in with-clause
+(with migration = Migration.run)
 actor {
-  type Product = {
+  // Product Types
+  public type Product = {
     id : Nat;
     name : Text;
     description : Text;
@@ -14,12 +22,12 @@ actor {
     category : Text;
   };
 
-  type CartItem = {
+  public type CartItem = {
     productId : Nat;
     quantity : Nat;
   };
 
-  type Order = {
+  public type Order = {
     id : Nat;
     productId : Nat;
     quantity : Nat;
@@ -29,16 +37,12 @@ actor {
     couponUsed : ?Text;
   };
 
-  type Coupon = {
-    code : Text;
-    discountAmount : Nat;
+  // User Profile Type
+  public type UserProfile = {
+    name : Text;
   };
 
-  let products = Map.empty<Nat, Product>();
-  let carts = Map.empty<Principal, List.List<CartItem>>();
-  let orders = Map.empty<Nat, Order>();
-  var nextOrderId = 1;
-
+  // Coupon Types
   let coupons = Map.fromIter<Text, Nat>([
     ("DINO20", 20),
     ("DINO50", 50),
@@ -48,7 +52,52 @@ actor {
     ("FREEALVRA", 349),
   ].values());
 
+  // Content Block Types
+  public type ContentBlock = {
+    key : Text;
+    value : Text;
+  };
+
+  // Var/Let Declarations (Persistent State)
+  var nextOrderId = 1;
+  let products = Map.empty<Nat, Product>();
+  let carts = Map.empty<Principal, List.List<CartItem>>();
+  let orders = Map.empty<Nat, Order>();
+  let contentBlocks = Map.empty<Text, ContentBlock>();
+  let userProfiles = Map.empty<Principal, UserProfile>();
+
+  // Access Control State (Persistent)
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
+
+  // User Profile Management
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
+  };
+
+  // Cart Management
   public shared ({ caller }) func addToCart(productId : Nat, quantity : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add items to cart");
+    };
+
     if (not products.containsKey(productId)) {
       Runtime.trap("Product does not exist");
     };
@@ -67,6 +116,10 @@ actor {
   };
 
   public shared ({ caller }) func removeFromCart(productId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can remove items from cart");
+    };
+
     let userCart = switch (carts.get(caller)) {
       case (null) { Runtime.trap("Cart is empty") };
       case (?cart) { cart };
@@ -90,10 +143,21 @@ actor {
   };
 
   public shared ({ caller }) func clearCart() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can clear cart");
+    };
     carts.remove(caller);
   };
 
-  public query func validateCoupon(code : Text) : async Coupon {
+  public query ({ caller }) func getAllProducts() : async [Product] {
+    products.values().toArray();
+  };
+
+  // Coupon Validation
+  public query func validateCoupon(code : Text) : async {
+    code : Text;
+    discountAmount : Nat;
+  } {
     switch (coupons.get(code)) {
       case (null) { Runtime.trap("Invalid coupon code") };
       case (?discount) {
@@ -105,7 +169,18 @@ actor {
     };
   };
 
-  public shared ({ caller }) func placeOrder(productId : Nat, quantity : Nat, couponCode : ?Text, customerName : Text, customerPhone : Text) : async Order {
+  // Place Order
+  public shared ({ caller }) func placeOrder(
+    productId : Nat,
+    quantity : Nat,
+    couponCode : ?Text,
+    customerName : Text,
+    customerPhone : Text
+  ) : async Order {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can place orders");
+    };
+
     let product = switch (products.get(productId)) {
       case (null) { Runtime.trap("Product not found") };
       case (?p) { p };
@@ -142,68 +217,65 @@ actor {
     orders.add(nextOrderId, order);
     nextOrderId += 1;
 
-    let orderId = nextOrderId - 1;
-    switch (orders.get(orderId)) {
-      case (null) { Runtime.trap("Could not retrieve order") };
-      case (?o) { o };
-    };
+    order;
   };
 
-  public query ({ caller }) func getAllProducts() : async [Product] {
-    products.values().toArray();
-  };
-
+  // Order Retrieval (Admins Only)
   public query ({ caller }) func getOrders() : async [Order] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can retrieve all orders");
+    };
     orders.values().toArray();
   };
 
+  // Product Initialization (Admin Only)
   public shared ({ caller }) func initializeProducts() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can initialize products");
+    };
+
     if (products.size() > 0) {
       Runtime.trap("Products already initialized");
     };
 
-    products.add(
-      1,
-      {
-        id = 1;
-        name = "Morning Bliss";
-        description = "A fresh, citrusy fragrance to start your day.";
-        price = 349;
-        category = "Daywear";
-      },
-    );
+    let defaultProducts : [Product] = [
+      { id = 1; name = "Men Formal Perfume"; description = "Perfect for office wear"; price = 799; category = "Men Formal" },
+      { id = 2; name = "Men Party Perfume"; description = "Ideal for party events"; price = 799; category = "Men Party" },
+      { id = 3; name = "Women Formal Perfume"; description = "Elegant fragrance for women"; price = 799; category = "Women Formal" },
+      { id = 4; name = "Women Party Perfume"; description = "Great for special occasions"; price = 799; category = "Women Party" },
+    ];
 
-    products.add(
-      2,
-      {
-        id = 2;
-        name = "Evening Elegance";
-        description = "Rich and deep scents for special occasions.";
-        price = 399;
-        category = "Evening";
-      },
-    );
+    for (product in defaultProducts.values()) {
+      products.add(product.id, product);
+    };
+  };
 
-    products.add(
-      3,
-      {
-        id = 3;
-        name = "Garden Whispers";
-        description = "Floral notes inspired by nature.";
-        price = 299;
-        category = "Floral";
-      },
-    );
+  // Content Block Management
+  public query ({ caller }) func getContent() : async [ContentBlock] {
+    contentBlocks.values().toArray();
+  };
 
-    products.add(
-      4,
-      {
-        id = 4;
-        name = "Ocean Breeze";
-        description = "Light and invigorating fragrance.";
-        price = 329;
-        category = "Fresh";
-      },
-    );
+  public shared ({ caller }) func updateContent(key : Text, value : Text) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only administrators can update content");
+    };
+
+    let contentBlock = {
+      key;
+      value;
+    };
+    contentBlocks.add(key, contentBlock);
+  };
+
+  public query ({ caller }) func getContentByKey(key : Text) : async ?Text {
+    switch (contentBlocks.get(key)) {
+      case (null) { null };
+      case (?block) { ?block.value };
+    };
+  };
+
+  // Check if Caller is Admin
+  public query ({ caller }) func isAdmin() : async Bool {
+    AccessControl.isAdmin(accessControlState, caller);
   };
 };

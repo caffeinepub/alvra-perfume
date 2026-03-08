@@ -7,6 +7,10 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface ContentBlock {
+    key: string;
+    value: string;
+}
 export interface CartItem {
     productId: bigint;
     quantity: bigint;
@@ -20,6 +24,9 @@ export interface Order {
     quantity: bigint;
     totalPrice: bigint;
 }
+export interface UserProfile {
+    name: string;
+}
 export interface Product {
     id: bigint;
     name: string;
@@ -27,18 +34,32 @@ export interface Product {
     category: string;
     price: bigint;
 }
-export interface Coupon {
-    code: string;
-    discountAmount: bigint;
+export enum UserRole {
+    admin = "admin",
+    user = "user",
+    guest = "guest"
 }
 export interface backendInterface {
     addToCart(productId: bigint, quantity: bigint): Promise<void>;
+    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     clearCart(): Promise<void>;
     getAllProducts(): Promise<Array<Product>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
+    getCallerUserRole(): Promise<UserRole>;
     getCart(): Promise<Array<CartItem>>;
+    getContent(): Promise<Array<ContentBlock>>;
+    getContentByKey(key: string): Promise<string | null>;
     getOrders(): Promise<Array<Order>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     initializeProducts(): Promise<void>;
+    isAdmin(): Promise<boolean>;
+    isCallerAdmin(): Promise<boolean>;
     placeOrder(productId: bigint, quantity: bigint, couponCode: string | null, customerName: string, customerPhone: string): Promise<Order>;
     removeFromCart(productId: bigint): Promise<void>;
-    validateCoupon(code: string): Promise<Coupon>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateContent(key: string, value: string): Promise<void>;
+    validateCoupon(code: string): Promise<{
+        code: string;
+        discountAmount: bigint;
+    }>;
 }
