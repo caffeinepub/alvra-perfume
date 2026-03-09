@@ -124,15 +124,26 @@ export default function LoginPage({ onNavigate }: LoginPageProps) {
           </p>
 
           {/* Back to store */}
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
             <button
               type="button"
               onClick={() => onNavigate("/")}
-              className="text-xs text-muted-foreground hover:text-gold transition-colors"
+              className="block w-full text-xs text-muted-foreground hover:text-gold transition-colors"
               data-ocid="login.back.link"
             >
               ← Back to Store
             </button>
+            <p className="text-xs text-muted-foreground/60">
+              Website owner?{" "}
+              <button
+                type="button"
+                onClick={() => onNavigate("/admin")}
+                className="text-gold hover:text-gold-bright transition-colors underline underline-offset-2"
+                data-ocid="login.admin.link"
+              >
+                Go to Admin Panel
+              </button>
+            </p>
           </div>
         </div>
 

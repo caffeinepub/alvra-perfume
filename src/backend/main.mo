@@ -12,8 +12,6 @@ import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-// Specify the data migration function in with-clause
-
 actor {
   include MixinStorage();
 
@@ -318,10 +316,10 @@ actor {
     products.add(productId, updatedProduct);
   };
 
-  // Product Initialization (Admin Only)
+  // Product Initialization (Any Authenticated User)
   public shared ({ caller }) func initializeProducts() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can initialize products");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can initialize products");
     };
 
     if (products.size() > 0) {

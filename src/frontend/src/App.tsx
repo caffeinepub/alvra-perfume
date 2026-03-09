@@ -1257,6 +1257,7 @@ function HomePage({
       });
       return;
     }
+    if (addToCart.isPending) return; // prevent double-click
     addToCart.mutate(
       { productId, quantity: 1n },
       {
@@ -1268,8 +1269,13 @@ function HomePage({
               : "Item added.",
           });
         },
-        onError: () => {
-          toast.error("Failed to add to cart. Please try again.");
+        onError: (error) => {
+          const msg = error instanceof Error ? error.message : "";
+          if (msg.includes("loading")) {
+            toast.info("Please wait a moment and try again.");
+          } else {
+            toast.error("Failed to add to cart. Please try again.");
+          }
         },
       },
     );

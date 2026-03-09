@@ -2,28 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AlertCircle,
-  GripVertical,
-  Loader2,
-  Lock,
-  Save,
-  Shield,
-  Upload,
-} from "lucide-react";
+import { GripVertical, Loader2, LogOut, Save, Upload } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useActor } from "../hooks/useActor";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useGetAllProducts,
   useGetContent,
-  useIsAdmin,
   useSetProductImage,
   useUpdateContent,
 } from "../hooks/useQueries";
-import { getSecretParameter } from "../utils/urlParams";
+import AdminLoginPage, { adminLogout, isAdminLoggedIn } from "./AdminLoginPage";
 
 interface AdminPageProps {
   onNavigate: (path: string) => void;
@@ -224,18 +214,12 @@ function useContentMap(blocks: { key: string; value: string }[]) {
 
 // ─── Admin Page ───────────────────────────────────────────────────────────────
 export default function AdminPage({ onNavigate }: AdminPageProps) {
-  const { identity } = useInternetIdentity();
   const { actor } = useActor();
-  const {
-    data: isAdmin,
-    isLoading: isAdminLoading,
-    refetch: refetchAdmin,
-  } = useIsAdmin();
+  const [adminSession, setAdminSession] = useState(() => isAdminLoggedIn());
   const { data: contentBlocks = [] } = useGetContent();
   const { data: backendProducts = [] } = useGetAllProducts();
   const updateContent = useUpdateContent();
   const setProductImage = useSetProductImage();
-  const [isClaimingAdmin, setIsClaimingAdmin] = useState(false);
 
   const contentMap = useContentMap(contentBlocks);
 
@@ -472,130 +456,25 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
     setDraggedId(null);
   };
 
-  // ─── Claim admin handler ──────────────────────────────────────────────────
-  const handleClaimAdmin = async () => {
-    if (!actor) {
-      toast.error("Please wait for the connection to load.");
-      return;
-    }
-    const adminToken = getSecretParameter("caffeineAdminToken") || "";
-    if (!adminToken) {
-      toast.error(
-        "Admin token not found. Please open the admin link sent to you by ALVRA support.",
-      );
-      return;
-    }
-    setIsClaimingAdmin(true);
-    try {
-      await actor._initializeAccessControlWithSecret(adminToken);
-      await refetchAdmin();
-      toast.success("Admin access granted! Welcome to the Admin Panel.");
-    } catch {
-      toast.error(
-        "Could not claim admin access. The admin role may already be assigned to another account.",
-      );
-    } finally {
-      setIsClaimingAdmin(false);
-    }
+  // ─── Handle logout ────────────────────────────────────────────────────────
+  const handleAdminLogout = () => {
+    adminLogout();
+    setAdminSession(false);
+    toast.success("Signed out of admin panel.");
   };
 
-  // ─── Access denied states ─────────────────────────────────────────────────
-  if (!identity) {
+  // ─── Access denied: show password login ───────────────────────────────────
+  if (!adminSession) {
     return (
-      <div className="min-h-screen bg-obsidian flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-obsidian-2 border border-gold-dim rounded-3xl p-10 text-center max-w-md"
-          data-ocid="admin.login_required.panel"
-        >
-          <Lock className="w-12 h-12 text-gold mx-auto mb-4" />
-          <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-            Sign In Required
-          </h2>
-          <p className="text-muted-foreground text-sm mb-6">
-            You must be signed in to access the admin panel.
-          </p>
-          <Button
-            onClick={() => onNavigate("/login")}
-            className="bg-gold text-obsidian font-bold hover:bg-gold-bright"
-            data-ocid="admin.goto_login.primary_button"
-          >
-            Sign In
-          </Button>
-        </motion.div>
-      </div>
+      <AdminLoginPage
+        onSuccess={() => setAdminSession(true)}
+        onNavigate={onNavigate}
+      />
     );
   }
 
-  if (isAdminLoading) {
-    return (
-      <div className="min-h-screen bg-obsidian flex items-center justify-center">
-        <div
-          className="flex flex-col items-center gap-4"
-          data-ocid="admin.loading_state"
-        >
-          <Loader2 className="w-8 h-8 text-gold animate-spin" />
-          <p className="text-muted-foreground text-sm">
-            Checking permissions...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-obsidian flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-obsidian-2 border border-gold-dim rounded-3xl p-10 text-center max-w-md"
-          data-ocid="admin.access_denied.panel"
-        >
-          <Shield className="w-12 h-12 text-gold mx-auto mb-4" />
-          <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-            Admin Access Required
-          </h2>
-          <p className="text-muted-foreground text-sm mb-2">
-            You are signed in but do not have admin access yet.
-          </p>
-          <p className="text-muted-foreground text-xs mb-8">
-            If you are the ALVRA owner, click "Claim Admin Access" below. You
-            only need to do this once.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Button
-              onClick={handleClaimAdmin}
-              disabled={isClaimingAdmin}
-              className="bg-gold text-obsidian font-bold hover:bg-gold-bright gap-2"
-              data-ocid="admin.claim_admin.primary_button"
-            >
-              {isClaimingAdmin ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Claiming Access...
-                </>
-              ) : (
-                <>
-                  <Shield className="w-4 h-4" />
-                  Claim Admin Access
-                </>
-              )}
-            </Button>
-            <Button
-              onClick={() => onNavigate("/")}
-              variant="outline"
-              className="border-border text-muted-foreground hover:text-gold hover:border-gold-dim"
-              data-ocid="admin.back_home.primary_button"
-            >
-              Back to Store
-            </Button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
+  // suppress unused warning
+  void actor;
 
   const sectionDefs: Record<
     string,
@@ -855,14 +734,25 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
             </button>
             <span className="text-muted-foreground text-xs">/ Admin</span>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => onNavigate("/")}
-            className="border-gold-dim text-gold hover:bg-gold hover:text-obsidian text-sm"
-            data-ocid="admin.back.secondary_button"
-          >
-            ← Back to Store
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => onNavigate("/")}
+              className="border-gold-dim text-gold hover:bg-gold hover:text-obsidian text-sm"
+              data-ocid="admin.back.secondary_button"
+            >
+              ← Back to Store
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleAdminLogout}
+              className="text-muted-foreground hover:text-gold text-sm gap-1.5"
+              data-ocid="admin.logout.button"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 

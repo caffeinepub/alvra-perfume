@@ -12,7 +12,11 @@ export function useInitializeProducts() {
   return useMutation({
     mutationFn: async () => {
       if (!actor) return;
-      await actor.initializeProducts();
+      try {
+        await actor.initializeProducts();
+      } catch {
+        // Ignore – products may already be initialized or caller isn't admin yet
+      }
     },
   });
 }
@@ -46,15 +50,25 @@ export function useGetCart() {
 }
 
 export function useAddToCart() {
-  const { actor } = useActor();
+  const { actor, isFetching } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       productId,
       quantity,
     }: { productId: bigint; quantity: bigint }) => {
-      if (!actor) throw new Error("Actor not available");
-      await actor.addToCart(productId, quantity);
+      if (!actor || isFetching) throw new Error("Please wait, loading...");
+      try {
+        await actor.addToCart(productId, quantity);
+      } catch (firstError) {
+        // If addToCart fails (e.g. user not yet registered), try re-registering then retry
+        try {
+          await actor._initializeAccessControlWithSecret("");
+          await actor.addToCart(productId, quantity);
+        } catch {
+          throw firstError; // surface original error if retry also fails
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
