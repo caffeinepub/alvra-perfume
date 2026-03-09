@@ -653,16 +653,30 @@ function GameSection() {
     <section
       id="play-win"
       data-ocid="game.section"
-      className="py-24 bg-obsidian-2 relative overflow-hidden"
+      className="py-0 bg-obsidian-2 relative overflow-hidden"
     >
+      {/* Full-width banner */}
+      <div className="w-full mb-0">
+        <img
+          src="/assets/generated/dino-banner.dim_1200x300.jpg"
+          alt="ALVRA Dino Challenge - Play & Win"
+          className="w-full object-cover"
+          style={{ maxHeight: "300px", objectFit: "cover", display: "block" }}
+        />
+      </div>
+
       <div
-        className="absolute inset-0 pointer-events-none opacity-40"
+        className="absolute pointer-events-none opacity-40"
         style={{
+          top: "300px",
+          left: 0,
+          right: 0,
+          bottom: 0,
           backgroundImage:
             "radial-gradient(circle at 20% 50%, oklch(0.65 0.13 20 / 0.1) 0%, transparent 50%)",
         }}
       />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center py-24">
         <FadeIn>
           <SectionHeading
             title="🎮 Play & Win Discount"

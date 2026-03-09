@@ -12,12 +12,8 @@ process.env.II_URL = process.env.II_URL || ii_url;
 process.env.STORAGE_GATEWAY_URL =
   process.env.STORAGE_GATEWAY_URL || "https://blob.caffeine.ai";
 
-// Support GitHub Pages base path (e.g. /repo-name/)
-const basePath = process.env.VITE_BASE_PATH || "/";
-
 export default defineConfig({
   logLevel: "error",
-  base: basePath,
   build: {
     emptyOutDir: true,
     sourcemap: false,
