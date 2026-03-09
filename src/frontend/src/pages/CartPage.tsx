@@ -141,14 +141,14 @@ export default function CartPage({ onNavigate }: CartPageProps) {
   if (!identity) {
     return (
       <div
-        className="min-h-screen bg-obsidian flex items-center justify-center p-4"
+        className="min-h-screen bg-background flex items-center justify-center p-4"
         data-ocid="cart.page"
       >
         <CartHeader onNavigate={onNavigate} />
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-obsidian-2 border border-gold-dim rounded-3xl p-10 text-center max-w-md mt-16"
+          className="bg-card border border-gold-dim rounded-3xl p-10 text-center max-w-md mt-16"
         >
           <ShoppingCart className="w-14 h-14 text-gold mx-auto mb-4" />
           <h2 className="font-display text-2xl font-bold text-foreground mb-3">
@@ -173,7 +173,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
   if (cartLoading) {
     return (
       <div
-        className="min-h-screen bg-obsidian flex items-center justify-center"
+        className="min-h-screen bg-background flex items-center justify-center"
         data-ocid="cart.loading_state"
       >
         <Loader2 className="w-8 h-8 text-gold animate-spin" />
@@ -184,7 +184,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
   // ─── Empty ─────────────────────────────────────────────────────────────────
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-obsidian" data-ocid="cart.page">
+      <div className="min-h-screen bg-background" data-ocid="cart.page">
         <CartHeader onNavigate={onNavigate} />
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
           <motion.div
@@ -193,7 +193,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
             className="text-center max-w-sm"
             data-ocid="cart.empty_state"
           >
-            <div className="w-24 h-24 rounded-full bg-obsidian-3 border border-gold-dim flex items-center justify-center mx-auto mb-6">
+            <div className="w-24 h-24 rounded-full bg-obsidian-2 border border-gold-dim flex items-center justify-center mx-auto mb-6">
               <ShoppingCart className="w-10 h-10 text-gold-dim" />
             </div>
             <h2 className="font-display text-2xl font-bold text-foreground mb-3">
@@ -218,7 +218,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
 
   // ─── Cart with items ───────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-obsidian" data-ocid="cart.page">
+    <div className="min-h-screen bg-background" data-ocid="cart.page">
       <CartHeader onNavigate={onNavigate} />
 
       <main className="max-w-5xl mx-auto px-4 pt-24 pb-16">
@@ -250,10 +250,10 @@ export default function CartPage({ onNavigate }: CartPageProps) {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ delay: index * 0.05 }}
                     data-ocid={`cart.item.${index + 1}`}
-                    className="bg-obsidian-2 border border-border rounded-2xl overflow-hidden flex gap-4 p-4"
+                    className="bg-card border border-border rounded-2xl overflow-hidden flex gap-4 p-4"
                   >
                     {/* Product image */}
-                    <div className="w-20 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-obsidian-3">
+                    <div className="w-20 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-obsidian-2">
                       <img
                         src={info.image}
                         alt={info.name}
@@ -317,7 +317,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-obsidian-2 border border-border rounded-2xl p-6 sticky top-24"
+              className="bg-card border border-border rounded-2xl p-6 sticky top-24"
             >
               <h2 className="font-display text-xl font-bold text-gold mb-5 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
@@ -360,7 +360,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
                       onKeyDown={(e) =>
                         e.key === "Enter" && handleApplyCoupon()
                       }
-                      className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground text-sm uppercase"
+                      className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground text-sm uppercase"
                       data-ocid="cart.coupon.input"
                     />
                     <Button
@@ -443,7 +443,7 @@ function CartHeader({
   onNavigate: (path: string) => void;
 }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 glass-dark border-b border-gold-dim">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-b border-gold-dim">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         <button
           type="button"

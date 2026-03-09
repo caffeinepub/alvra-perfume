@@ -24,70 +24,70 @@
   font-display: swap;
 }
 
-/* ─── ALVRA Design Tokens — Dark Luxury ─── */
+/* ─── ALVRA Design Tokens — Light & Peaceful ─── */
 @layer base {
   :root {
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
-    /* Core palette — rich obsidian + gold */
-    --background: 0.09 0 0;
-    --foreground: 0.94 0.02 85;
+    /* Core palette — soft ivory + blush + sage */
+    --background: 0.97 0.008 75;
+    --foreground: 0.22 0.015 50;
 
-    --card: 0.12 0 0;
-    --card-foreground: 0.94 0.02 85;
+    --card: 0.99 0.005 75;
+    --card-foreground: 0.22 0.015 50;
 
-    --popover: 0.12 0.005 0;
-    --popover-foreground: 0.94 0.02 85;
+    --popover: 0.99 0.005 75;
+    --popover-foreground: 0.22 0.015 50;
 
-    /* Gold primary */
-    --primary: 0.78 0.13 75;
-    --primary-foreground: 0.09 0 0;
+    /* Rose-gold primary */
+    --primary: 0.65 0.13 20;
+    --primary-foreground: 0.99 0.004 75;
 
-    /* Deep charcoal secondary */
-    --secondary: 0.18 0.005 0;
-    --secondary-foreground: 0.94 0.02 85;
+    /* Blush secondary */
+    --secondary: 0.93 0.025 20;
+    --secondary-foreground: 0.35 0.04 20;
 
     /* Muted tones */
-    --muted: 0.16 0.005 0;
-    --muted-foreground: 0.56 0.01 0;
+    --muted: 0.94 0.015 75;
+    --muted-foreground: 0.52 0.025 50;
 
-    /* Accent — warm amber */
-    --accent: 0.22 0.01 0;
-    --accent-foreground: 0.94 0.02 85;
+    /* Accent — sage green */
+    --accent: 0.92 0.03 145;
+    --accent-foreground: 0.3 0.06 145;
 
     /* Destructive */
     --destructive: 0.577 0.245 27.325;
     --destructive-foreground: 0.985 0 0;
 
     /* Borders */
-    --border: 0.24 0.02 75;
-    --input: 0.18 0.01 75;
-    --ring: 0.78 0.13 75;
+    --border: 0.88 0.03 50;
+    --input: 0.93 0.02 50;
+    --ring: 0.65 0.13 20;
 
     /* Chart colors */
-    --chart-1: 0.78 0.13 75;
-    --chart-2: 0.65 0.08 50;
-    --chart-3: 0.5 0.05 25;
-    --chart-4: 0.85 0.15 80;
-    --chart-5: 0.7 0.1 60;
+    --chart-1: 0.65 0.13 20;
+    --chart-2: 0.72 0.09 145;
+    --chart-3: 0.78 0.07 50;
+    --chart-4: 0.85 0.1 80;
+    --chart-5: 0.6 0.08 300;
 
     /* Sidebar */
-    --sidebar: 0.1 0 0;
-    --sidebar-foreground: 0.94 0.02 85;
-    --sidebar-primary: 0.78 0.13 75;
-    --sidebar-primary-foreground: 0.09 0 0;
-    --sidebar-accent: 0.16 0.005 0;
-    --sidebar-accent-foreground: 0.94 0.02 85;
-    --sidebar-border: 0.24 0.02 75;
-    --sidebar-ring: 0.78 0.13 75;
+    --sidebar: 0.96 0.01 75;
+    --sidebar-foreground: 0.22 0.015 50;
+    --sidebar-primary: 0.65 0.13 20;
+    --sidebar-primary-foreground: 0.99 0.004 75;
+    --sidebar-accent: 0.92 0.03 145;
+    --sidebar-accent-foreground: 0.3 0.06 145;
+    --sidebar-border: 0.88 0.03 50;
+    --sidebar-ring: 0.65 0.13 20;
 
-    /* ALVRA custom tokens */
-    --gold: 0.78 0.13 75;
-    --gold-bright: 0.85 0.16 82;
-    --gold-dim: 0.55 0.09 70;
-    --obsidian: 0.09 0 0;
-    --obsidian-2: 0.12 0 0;
-    --obsidian-3: 0.16 0 0;
+    /* ALVRA custom tokens — rose-gold & petal palette */
+    --gold: 0.65 0.13 20;
+    --gold-bright: 0.72 0.15 22;
+    --gold-dim: 0.78 0.08 25;
+    --obsidian: 0.97 0.008 75;
+    --obsidian-2: 0.95 0.012 60;
+    --obsidian-3: 0.92 0.018 50;
   }
 
   * {
@@ -105,7 +105,7 @@
   }
 
   ::selection {
-    background-color: oklch(var(--gold) / 0.3);
+    background-color: oklch(var(--gold) / 0.2);
     color: oklch(var(--foreground));
   }
 
@@ -157,11 +157,11 @@
   }
 
   .gold-glow {
-    text-shadow: 0 0 30px oklch(var(--gold) / 0.5), 0 0 60px oklch(var(--gold) / 0.2);
+    text-shadow: 0 0 30px oklch(var(--gold) / 0.35), 0 0 60px oklch(var(--gold) / 0.15);
   }
 
   .gold-glow-box {
-    box-shadow: 0 0 20px oklch(var(--gold) / 0.2), 0 0 40px oklch(var(--gold) / 0.1);
+    box-shadow: 0 0 20px oklch(var(--gold) / 0.15), 0 0 40px oklch(var(--gold) / 0.08);
   }
 
   .gold-gradient {
@@ -169,7 +169,7 @@
   }
 
   .glass-dark {
-    background: oklch(var(--obsidian-2) / 0.85);
+    background: oklch(var(--obsidian) / 0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
@@ -179,7 +179,7 @@
   }
   .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 40px oklch(var(--gold) / 0.2);
+    box-shadow: 0 12px 40px oklch(var(--gold) / 0.15);
   }
 
   .shimmer {
@@ -199,7 +199,7 @@
     inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
     pointer-events: none;
-    opacity: 0.06;
+    opacity: 0.04;
   }
 }
 
@@ -215,8 +215,8 @@
 }
 
 @keyframes pulse-gold {
-  0%, 100% { opacity: 1; box-shadow: 0 0 20px oklch(var(--gold) / 0.3); }
-  50% { opacity: 0.8; box-shadow: 0 0 40px oklch(var(--gold) / 0.5); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 20px oklch(var(--gold) / 0.25); }
+  50% { opacity: 0.9; box-shadow: 0 0 40px oklch(var(--gold) / 0.4); }
 }
 
 @keyframes accordion-down {

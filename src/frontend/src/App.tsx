@@ -41,19 +41,36 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import { onContentUpdate, readAll } from "./utils/contentStore";
 
-// ─── Simple client-side router ───────────────────────────────────────────────
+// ─── Simple client-side router (hash-based for ICP hosting compatibility) ────
+function readHashPath(): string {
+  const hash = window.location.hash;
+  // "#/admin" -> "/admin", "#/" -> "/", "" -> "/"
+  if (hash.startsWith("#/")) return hash.slice(1);
+  if (hash === "#" || hash === "") return "/";
+  if (hash.startsWith("#")) return `/${hash.slice(1)}`;
+  return "/";
+}
+
 function useRouter() {
-  const [path, setPath] = useState(() => window.location.pathname);
+  const [path, setPath] = useState<string>(readHashPath);
 
   useEffect(() => {
-    const handlePop = () => setPath(window.location.pathname);
-    window.addEventListener("popstate", handlePop);
-    return () => window.removeEventListener("popstate", handlePop);
+    // Re-read on mount so the initial hash is always reflected after hydration
+    setPath(readHashPath());
+
+    const handleChange = () => setPath(readHashPath());
+    window.addEventListener("popstate", handleChange);
+    window.addEventListener("hashchange", handleChange);
+    return () => {
+      window.removeEventListener("popstate", handleChange);
+      window.removeEventListener("hashchange", handleChange);
+    };
   }, []);
 
   const navigate = (to: string) => {
-    window.history.pushState({}, "", to);
+    window.location.hash = to;
     setPath(to);
     window.scrollTo({ top: 0 });
   };
@@ -110,45 +127,54 @@ function SectionHeading({
   );
 }
 
-// ─── Products data ─────────────────────────────────────────────────────────────
-const PRODUCTS = [
-  {
-    id: 1n,
-    name: "Men Formal",
-    description: "Fresh elegant fragrance",
-    price: "₹799",
-    image: "/assets/generated/men-formal.dim_400x500.png",
-    tag: "Bestseller",
-    category: "Formal",
-  },
-  {
-    id: 2n,
-    name: "Men Party",
-    description: "Strong night fragrance",
-    price: "₹799",
-    image: "/assets/generated/men-party.dim_400x500.png",
-    tag: "New",
-    category: "Party",
-  },
-  {
-    id: 3n,
-    name: "Women Formal",
-    description: "Soft floral fragrance",
-    price: "₹799",
-    image: "/assets/generated/women-formal.dim_400x500.png",
-    tag: "Popular",
-    category: "Formal",
-  },
-  {
-    id: 4n,
-    name: "Women Party",
-    description: "Sweet seductive fragrance",
-    price: "₹799",
-    image: "/assets/generated/women-party.dim_400x500.png",
-    tag: "Limited",
-    category: "Party",
-  },
-];
+// ─── Products data (with content map overrides) ───────────────────────────────
+function getProducts(cm: Record<string, string> = readAll()) {
+  const BASE = [
+    {
+      id: 1n,
+      name: "Men Formal",
+      description: "Fresh elegant fragrance",
+      price: "₹799",
+      image: "/assets/generated/men-formal.dim_400x500.png",
+      tag: "Bestseller",
+      category: "Formal",
+    },
+    {
+      id: 2n,
+      name: "Men Party",
+      description: "Strong night fragrance",
+      price: "₹799",
+      image: "/assets/generated/men-party.dim_400x500.png",
+      tag: "New",
+      category: "Party",
+    },
+    {
+      id: 3n,
+      name: "Women Formal",
+      description: "Soft floral fragrance",
+      price: "₹799",
+      image: "/assets/generated/women-formal.dim_400x500.png",
+      tag: "Popular",
+      category: "Formal",
+    },
+    {
+      id: 4n,
+      name: "Women Party",
+      description: "Sweet seductive fragrance",
+      price: "₹799",
+      image: "/assets/generated/women-party.dim_400x500.png",
+      tag: "Limited",
+      category: "Party",
+    },
+  ];
+  return BASE.map((p, i) => ({
+    ...p,
+    name: cm[`product.${i + 1}.name`] ?? p.name,
+    description: cm[`product.${i + 1}.desc`] ?? p.description,
+    price: cm[`product.${i + 1}.price`] ?? p.price,
+    image: cm[`product.${i + 1}.image`] ?? p.image,
+  }));
+}
 
 // ─── Reviews data ─────────────────────────────────────────────────────────────
 const REVIEWS = [
@@ -216,7 +242,7 @@ function Header({
         data-ocid="header.section"
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           scrolled
-            ? "glass-dark border-b border-gold-dim shadow-gold"
+            ? "bg-background/90 backdrop-blur-xl border-b border-gold-dim shadow-sm"
             : "bg-transparent"
         }`}
       >
@@ -225,7 +251,7 @@ function Header({
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
-            className="text-gold hover:text-gold-bright transition-colors p-2 rounded-lg hover:bg-obsidian-3 md:hidden"
+            className="text-gold hover:text-gold-bright transition-colors p-2 rounded-lg hover:bg-obsidian-2 md:hidden"
             data-ocid="header.menu_button"
             aria-label="Open menu"
           >
@@ -292,7 +318,7 @@ function Header({
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-gold transition-colors px-3 py-1.5 rounded-lg hover:bg-obsidian-3"
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-gold transition-colors px-3 py-1.5 rounded-lg hover:bg-obsidian-2"
                   data-ocid="header.logout.button"
                   disabled={isLoggingIn}
                 >
@@ -315,7 +341,7 @@ function Header({
             <button
               type="button"
               onClick={() => onNavigate("/cart")}
-              className="relative text-gold hover:text-gold-bright transition-colors p-2 rounded-lg hover:bg-obsidian-3"
+              className="relative text-gold hover:text-gold-bright transition-colors p-2 rounded-lg hover:bg-obsidian-2"
               data-ocid="header.cart_button"
               aria-label="Shopping cart"
             >
@@ -338,7 +364,7 @@ function Header({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/80"
+              className="fixed inset-0 z-50 bg-foreground/20"
               onClick={() => setMenuOpen(false)}
             />
             <motion.div
@@ -346,7 +372,7 @@ function Header({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 bottom-0 z-50 w-72 bg-obsidian-2 border-r border-gold-dim p-6 flex flex-col"
+              className="fixed left-0 top-0 bottom-0 z-50 w-72 bg-background border-r border-gold-dim p-6 flex flex-col shadow-xl"
             >
               <div className="flex items-center justify-between mb-8">
                 <span className="font-luxury text-xl text-gold tracking-widest">
@@ -366,7 +392,7 @@ function Header({
                     type="button"
                     key={link.id}
                     onClick={() => scrollTo(link.id)}
-                    className="text-left px-4 py-3 text-foreground hover:text-gold hover:bg-obsidian-3 rounded-lg transition-all font-medium"
+                    className="text-left px-4 py-3 text-foreground hover:text-gold hover:bg-obsidian-2 rounded-lg transition-all font-medium"
                     data-ocid={link.ocid}
                   >
                     {link.label}
@@ -391,7 +417,7 @@ function Header({
                           setMenuOpen(false);
                           onNavigate("/admin");
                         }}
-                        className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-3 rounded-lg transition-all text-sm"
+                        className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-2 rounded-lg transition-all text-sm"
                         data-ocid="header.mobile_admin.link"
                       >
                         <Settings className="w-4 h-4" />
@@ -401,7 +427,7 @@ function Header({
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="flex items-center gap-2 px-4 py-3 text-muted-foreground hover:text-gold hover:bg-obsidian-3 rounded-lg transition-all text-sm"
+                      className="flex items-center gap-2 px-4 py-3 text-muted-foreground hover:text-gold hover:bg-obsidian-2 rounded-lg transition-all text-sm"
                       data-ocid="header.mobile_logout.button"
                     >
                       <LogOut className="w-4 h-4" />
@@ -415,7 +441,7 @@ function Header({
                       setMenuOpen(false);
                       onNavigate("/login");
                     }}
-                    className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-3 rounded-lg transition-all text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-2 rounded-lg transition-all text-sm font-medium"
                     data-ocid="header.mobile_login.link"
                   >
                     <LogIn className="w-4 h-4" />
@@ -437,24 +463,45 @@ function Header({
   );
 }
 
+// ─── Hook: reads from contentStore, re-renders whenever admin saves ───────────
+function useContent() {
+  const [cm, setCm] = useState<Record<string, string>>(() => readAll());
+
+  useEffect(() => {
+    // Refresh on any admin save (same tab or another tab)
+    const refresh = () => setCm(readAll());
+    const unsub = onContentUpdate(refresh);
+    return unsub;
+  }, []);
+
+  return cm;
+}
+
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 function HeroSection() {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
+  const cm = useContent();
+  const heroTitle = cm["hero.title"] || "BE UNFORGETTABLE";
+  const heroSubtitle =
+    cm["hero.subtitle"] ||
+    "Premium perfumes designed for Formal & Party moments.";
+  const heroImage =
+    cm["hero.image"] || "/assets/generated/hero-perfume.dim_800x900.png";
 
   return (
     <section
       id="home"
       data-ocid="hero.section"
-      className="relative min-h-screen flex items-center overflow-hidden bg-obsidian"
+      className="relative min-h-screen flex items-center overflow-hidden bg-background"
     >
       {/* Background mesh */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 80% at 70% 50%, oklch(0.22 0.04 75 / 0.25) 0%, transparent 60%), radial-gradient(ellipse 60% 60% at 20% 80%, oklch(0.15 0.02 75 / 0.15) 0%, transparent 50%)",
+            "radial-gradient(ellipse 80% 80% at 70% 50%, oklch(0.85 0.06 20 / 0.3) 0%, transparent 60%), radial-gradient(ellipse 60% 60% at 20% 80%, oklch(0.88 0.04 145 / 0.2) 0%, transparent 50%)",
         }}
       />
       {/* Grain */}
@@ -475,7 +522,7 @@ function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              <Badge className="bg-obsidian-3 text-gold border-gold-dim mb-6 text-xs tracking-widest px-3 py-1">
+              <Badge className="bg-obsidian-2 text-gold border-gold-dim mb-6 text-xs tracking-widest px-3 py-1">
                 ✦ PREMIUM COLLECTION 2025
               </Badge>
             </motion.div>
@@ -490,9 +537,7 @@ function HeroSection() {
               }}
               className="font-luxury text-6xl sm:text-7xl lg:text-8xl font-bold leading-none mb-6"
             >
-              <span className="text-gold gold-glow block">BE</span>
-              <span className="text-foreground block">UNFOR-</span>
-              <span className="text-gold gold-glow block">GETTABLE</span>
+              <span className="text-gold gold-glow block">{heroTitle}</span>
             </motion.h1>
 
             <motion.p
@@ -501,9 +546,7 @@ function HeroSection() {
               transition={{ delay: 0.5, duration: 0.7 }}
               className="text-muted-foreground text-lg md:text-xl mb-10 max-w-md leading-relaxed"
             >
-              Premium perfumes designed for{" "}
-              <span className="text-gold">Formal</span> &{" "}
-              <span className="text-gold">Party</span> moments.
+              {heroSubtitle}
             </motion.p>
 
             <motion.div
@@ -566,17 +609,17 @@ function HeroSection() {
                 className="absolute inset-0 rounded-full blur-3xl"
                 style={{
                   background:
-                    "radial-gradient(circle, oklch(0.78 0.13 75 / 0.2) 0%, transparent 70%)",
+                    "radial-gradient(circle, oklch(0.65 0.13 20 / 0.15) 0%, transparent 70%)",
                   transform: "scale(1.3)",
                 }}
               />
               <div className="animate-float relative z-10">
                 <img
-                  src="/assets/generated/hero-perfume.dim_800x900.png"
+                  src={heroImage}
                   alt="ALVRA Premium Perfume"
                   className="w-72 sm:w-96 lg:w-[420px] drop-shadow-2xl"
                   style={{
-                    filter: "drop-shadow(0 0 40px oklch(0.78 0.13 75 / 0.3))",
+                    filter: "drop-shadow(0 0 40px oklch(0.65 0.13 20 / 0.25))",
                   }}
                 />
               </div>
@@ -613,10 +656,10 @@ function GameSection() {
       className="py-24 bg-obsidian-2 relative overflow-hidden"
     >
       <div
-        className="absolute inset-0 pointer-events-none opacity-20"
+        className="absolute inset-0 pointer-events-none opacity-40"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 20% 50%, oklch(0.78 0.13 75 / 0.15) 0%, transparent 50%)",
+            "radial-gradient(circle at 20% 50%, oklch(0.65 0.13 20 / 0.1) 0%, transparent 50%)",
         }}
       />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -628,7 +671,7 @@ function GameSection() {
         </FadeIn>
 
         <FadeIn delay={0.2}>
-          <div className="bg-obsidian border border-gold-dim rounded-2xl p-8 md:p-12 gold-glow-box">
+          <div className="bg-card border border-gold-dim rounded-2xl p-8 md:p-12 gold-glow-box">
             {/* Reward tiers preview */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8 text-sm">
               {[
@@ -641,7 +684,7 @@ function GameSection() {
               ].map((tier) => (
                 <div
                   key={tier.score}
-                  className="bg-obsidian-3 border border-border rounded-lg px-3 py-2 text-center"
+                  className="bg-obsidian-2 border border-border rounded-lg px-3 py-2 text-center"
                 >
                   <div className="text-base mb-1">{tier.icon}</div>
                   <div className="text-gold font-bold">{tier.score}</div>
@@ -668,7 +711,7 @@ function ProductCard({
   index,
   onAddToCart,
 }: {
-  product: (typeof PRODUCTS)[0];
+  product: ReturnType<typeof getProducts>[0];
   index: number;
   onAddToCart: (id: bigint) => void;
 }) {
@@ -681,9 +724,9 @@ function ProductCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       data-ocid={`product.card.${ocidIndex}`}
-      className="group bg-obsidian-2 border border-border rounded-2xl overflow-hidden card-hover"
+      className="group bg-card border border-border rounded-2xl overflow-hidden card-hover"
     >
-      <div className="relative overflow-hidden bg-obsidian-3 aspect-[4/5]">
+      <div className="relative overflow-hidden bg-obsidian-2 aspect-[4/5]">
         <img
           src={product.image}
           alt={product.name}
@@ -733,11 +776,13 @@ function ProductsSection({
 }: {
   onAddToCart: (id: bigint) => void;
 }) {
+  const cm = useContent();
+  const products = getProducts(cm);
   return (
     <section
       id="shop"
       data-ocid="products.section"
-      className="py-24 bg-obsidian"
+      className="py-24 bg-background"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
@@ -748,7 +793,7 @@ function ProductsSection({
         </FadeIn>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {PRODUCTS.map((product, index) => (
+          {products.map((product, index) => (
             <ProductCard
               key={product.id.toString()}
               product={product}
@@ -786,12 +831,12 @@ function LaunchOfferSection() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 60% 70% at 50% 50%, oklch(0.78 0.13 75 / 0.06) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 70% at 50% 50%, oklch(0.65 0.13 20 / 0.06) 0%, transparent 70%)",
         }}
       />
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <FadeIn>
-          <div className="bg-obsidian border-2 border-gold rounded-3xl p-8 md:p-12 shadow-gold-lg relative overflow-hidden">
+          <div className="bg-card border-2 border-gold rounded-3xl p-8 md:p-12 shadow-gold-lg relative overflow-hidden">
             {/* Corner accents */}
             <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-gold rounded-tl-3xl" />
             <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-gold rounded-br-3xl" />
@@ -817,7 +862,7 @@ function LaunchOfferSection() {
               {inclusions.map((item) => (
                 <div
                   key={item.text}
-                  className="flex items-center gap-3 bg-obsidian-3 rounded-xl px-4 py-3 border border-border"
+                  className="flex items-center gap-3 bg-obsidian-2 rounded-xl px-4 py-3 border border-border"
                 >
                   <item.icon className="w-5 h-5 text-gold flex-shrink-0" />
                   <span className="text-foreground font-medium">
@@ -851,7 +896,7 @@ function EMISection() {
   };
 
   return (
-    <section data-ocid="emi.section" className="py-24 bg-obsidian">
+    <section data-ocid="emi.section" className="py-24 bg-background">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
         <FadeIn>
           <SectionHeading
@@ -861,9 +906,9 @@ function EMISection() {
         </FadeIn>
 
         <FadeIn delay={0.15}>
-          <div className="bg-obsidian-2 border border-gold-dim rounded-2xl p-8 md:p-10 gold-glow-box mb-8">
+          <div className="bg-card border border-gold-dim rounded-2xl p-8 md:p-10 gold-glow-box mb-8">
             <div className="grid sm:grid-cols-3 gap-4 mb-6">
-              <div className="bg-obsidian-3 rounded-xl p-5 border border-gold">
+              <div className="bg-obsidian-2 rounded-xl p-5 border border-gold">
                 <div className="text-3xl font-bold text-gold font-luxury mb-1">
                   ₹199
                 </div>
@@ -874,7 +919,7 @@ function EMISection() {
                   +
                 </span>
               </div>
-              <div className="bg-obsidian-3 rounded-xl p-5 border border-border">
+              <div className="bg-obsidian-2 rounded-xl p-5 border border-border">
                 <div className="text-3xl font-bold text-foreground font-luxury mb-1">
                   ₹150
                 </div>
@@ -895,7 +940,7 @@ function EMISection() {
               ].map((row) => (
                 <div
                   key={row.week}
-                  className="flex items-center justify-between px-4 py-3 rounded-lg bg-obsidian-3 border border-border"
+                  className="flex items-center justify-between px-4 py-3 rounded-lg bg-obsidian-2 border border-border"
                 >
                   <div className="flex items-center gap-3">
                     <Clock className="w-4 h-4 text-gold" />
@@ -930,28 +975,31 @@ function EMISection() {
 
 // ─── Why Choose Section ───────────────────────────────────────────────────────
 function WhySection() {
-  const features = [
+  const cm = useContent();
+  const ICON_MAP = [Clock, Leaf, Sparkles, Heart];
+  const DEFAULT_FEATURES = [
     {
-      icon: Clock,
       title: "Long lasting fragrance",
       desc: "Our fragrances last 10–14 hours, keeping you fresh all day and night.",
     },
     {
-      icon: Leaf,
       title: "Premium ingredients",
       desc: "Sourced from the world's finest fragrance houses. No compromise on quality.",
     },
     {
-      icon: Sparkles,
       title: "Modern scent profiles",
       desc: "Contemporary interpretations of classic oriental and floral notes.",
     },
     {
-      icon: Heart,
       title: "Formal & Party occasions",
       desc: "Purpose-built fragrances for every moment of your life.",
     },
   ];
+  const features = DEFAULT_FEATURES.map((f, i) => ({
+    icon: ICON_MAP[i],
+    title: cm[`why.${i + 1}.title`] ?? f.title,
+    desc: cm[`why.${i + 1}.desc`] ?? f.desc,
+  }));
 
   return (
     <section data-ocid="why.section" className="py-24 bg-obsidian-2">
@@ -966,8 +1014,8 @@ function WhySection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, i) => (
             <FadeIn key={feature.title} delay={i * 0.1}>
-              <div className="group bg-obsidian border border-border rounded-2xl p-6 card-hover text-center h-full">
-                <div className="w-12 h-12 rounded-full bg-obsidian-3 border border-gold-dim flex items-center justify-center mx-auto mb-4 group-hover:border-gold transition-colors">
+              <div className="group bg-card border border-border rounded-2xl p-6 card-hover text-center h-full">
+                <div className="w-12 h-12 rounded-full bg-obsidian-2 border border-gold-dim flex items-center justify-center mx-auto mb-4 group-hover:border-gold transition-colors">
                   <feature.icon className="w-6 h-6 text-gold" />
                 </div>
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -989,7 +1037,7 @@ function WhySection() {
 // ─── Reviews Section ──────────────────────────────────────────────────────────
 function ReviewsSection() {
   return (
-    <section data-ocid="reviews.section" className="py-24 bg-obsidian">
+    <section data-ocid="reviews.section" className="py-24 bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <SectionHeading
@@ -1003,7 +1051,7 @@ function ReviewsSection() {
             <FadeIn key={review.name} delay={i * 0.1}>
               <div
                 data-ocid={`review.card.${i + 1}`}
-                className="bg-obsidian-2 border border-border rounded-2xl p-6 card-hover relative"
+                className="bg-card border border-border rounded-2xl p-6 card-hover relative"
               >
                 {/* Quote mark */}
                 <div
@@ -1052,12 +1100,12 @@ function ReviewsSection() {
 // ─── Instagram Section ────────────────────────────────────────────────────────
 function InstagramSection() {
   const gradients = [
-    "from-yellow-900/60 to-orange-900/60",
-    "from-pink-900/60 to-purple-900/60",
-    "from-blue-900/60 to-indigo-900/60",
-    "from-green-900/60 to-teal-900/60",
-    "from-red-900/60 to-pink-900/60",
-    "from-amber-900/60 to-yellow-900/60",
+    "from-rose-200/80 to-amber-100/80",
+    "from-pink-200/80 to-purple-100/80",
+    "from-sky-200/80 to-blue-100/80",
+    "from-emerald-200/80 to-teal-100/80",
+    "from-rose-300/70 to-pink-200/70",
+    "from-amber-200/80 to-yellow-100/80",
   ];
 
   return (
@@ -1123,7 +1171,7 @@ function Footer() {
     <footer
       id="contact"
       data-ocid="footer.section"
-      className="bg-obsidian border-t border-gold-dim py-16"
+      className="bg-obsidian-2 border-t border-gold-dim py-16"
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Brand */}
@@ -1262,7 +1310,7 @@ function HomePage({
       { productId, quantity: 1n },
       {
         onSuccess: () => {
-          const product = PRODUCTS.find((p) => p.id === productId);
+          const product = getProducts().find((p) => p.id === productId);
           toast.success("Added to cart!", {
             description: product
               ? `${product.name} added to your cart.`
@@ -1287,7 +1335,7 @@ function HomePage({
   );
 
   return (
-    <div className="bg-obsidian min-h-screen">
+    <div className="bg-background min-h-screen">
       <Header cartCount={cartCount} onNavigate={onNavigate} />
       <main>
         <HeroSection />
@@ -1311,12 +1359,12 @@ export default function App() {
   return (
     <>
       <Toaster
-        theme="dark"
+        theme="light"
         toastOptions={{
           style: {
-            background: "oklch(0.12 0 0)",
-            border: "1px solid oklch(0.78 0.13 75 / 0.3)",
-            color: "oklch(0.94 0.02 85)",
+            background: "oklch(0.99 0.005 75)",
+            border: "1px solid oklch(0.65 0.13 20 / 0.25)",
+            color: "oklch(0.22 0.015 50)",
           },
         }}
       />

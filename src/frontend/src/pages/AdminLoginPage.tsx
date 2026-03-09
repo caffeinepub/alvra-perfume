@@ -72,13 +72,13 @@ export default function AdminLoginPage({
   };
 
   return (
-    <div className="min-h-screen bg-obsidian flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Ambient background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 60% 60% at 50% 40%, oklch(0.78 0.13 75 / 0.07) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 60% at 50% 40%, oklch(0.65 0.13 20 / 0.06) 0%, transparent 70%)",
         }}
       />
 
@@ -103,7 +103,7 @@ export default function AdminLoginPage({
           </p>
         </div>
 
-        <div className="bg-obsidian-2 border border-gold-dim rounded-3xl p-8 md:p-10 shadow-gold-lg">
+        <div className="bg-card border border-gold-dim rounded-3xl p-8 md:p-10 shadow-gold-lg">
           {/* Logo */}
           <div className="text-center mb-6">
             <button
@@ -121,16 +121,16 @@ export default function AdminLoginPage({
           </div>
 
           {/* Credentials Box */}
-          <div className="mb-6 bg-obsidian border-2 border-gold rounded-2xl px-5 py-4">
+          <div className="mb-6 bg-obsidian-2 border-2 border-gold rounded-2xl px-5 py-4">
             <p className="text-xs text-gold font-bold mb-3 uppercase tracking-wider text-center">
               Your Login Credentials
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-obsidian-3 rounded-xl px-4 py-3 text-center">
+              <div className="bg-obsidian-2 rounded-xl px-4 py-3 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Username</p>
                 <p className="text-gold font-mono font-bold text-lg">admin</p>
               </div>
-              <div className="bg-obsidian-3 rounded-xl px-4 py-3 text-center">
+              <div className="bg-obsidian-2 rounded-xl px-4 py-3 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Password</p>
                 <p className="text-gold font-mono font-bold text-lg">
                   alvra2025
@@ -163,7 +163,7 @@ export default function AdminLoginPage({
                     setError("");
                   }}
                   placeholder="admin"
-                  className="pl-10 bg-obsidian-3 border-gold-dim focus:border-gold text-foreground placeholder:text-muted-foreground"
+                  className="pl-10 bg-background border-gold-dim focus:border-gold text-foreground placeholder:text-muted-foreground"
                   autoComplete="off"
                   data-ocid="admin_login.input"
                   required
@@ -190,7 +190,7 @@ export default function AdminLoginPage({
                     setError("");
                   }}
                   placeholder="alvra2025"
-                  className="pl-10 pr-10 bg-obsidian-3 border-gold-dim focus:border-gold text-foreground placeholder:text-muted-foreground"
+                  className="pl-10 pr-10 bg-background border-gold-dim focus:border-gold text-foreground placeholder:text-muted-foreground"
                   autoComplete="off"
                   data-ocid="admin_login.password.input"
                   required

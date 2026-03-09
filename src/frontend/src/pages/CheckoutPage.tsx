@@ -63,7 +63,7 @@ function CheckoutHeader({
   onNavigate: (path: string) => void;
 }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 glass-dark border-b border-gold-dim">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-b border-gold-dim">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         <button
           type="button"
@@ -111,7 +111,7 @@ function OrderSuccess({
       className="min-h-[60vh] flex items-center justify-center px-4"
       data-ocid="checkout.success.panel"
     >
-      <div className="bg-obsidian-2 border border-gold-dim rounded-3xl p-8 md:p-12 text-center max-w-lg w-full gold-glow-box">
+      <div className="bg-card border border-gold-dim rounded-3xl p-8 md:p-12 text-center max-w-lg w-full gold-glow-box">
         {/* Animated checkmark */}
         <motion.div
           initial={{ scale: 0 }}
@@ -140,7 +140,7 @@ function OrderSuccess({
           </p>
 
           {/* Order details */}
-          <div className="bg-obsidian-3 border border-border rounded-2xl p-4 mb-6 text-left space-y-2.5">
+          <div className="bg-obsidian-2 border border-border rounded-2xl p-4 mb-6 text-left space-y-2.5">
             {orders.map((order) => (
               <div
                 key={order.id.toString()}
@@ -335,13 +335,13 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   // ─── Auth guard ────────────────────────────────────────────────────────────
   if (!identity) {
     return (
-      <div className="min-h-screen bg-obsidian">
+      <div className="min-h-screen bg-background">
         <CheckoutHeader onNavigate={onNavigate} />
         <div className="flex items-center justify-center min-h-screen px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-obsidian-2 border border-gold-dim rounded-3xl p-10 text-center max-w-md"
+            className="bg-card border border-gold-dim rounded-3xl p-10 text-center max-w-md"
           >
             <ShoppingBag className="w-14 h-14 text-gold mx-auto mb-4" />
             <h2 className="font-display text-2xl font-bold text-foreground mb-3">
@@ -375,7 +375,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   // ─── Empty cart ────────────────────────────────────────────────────────────
   if (cartItems.length === 0 && !completedOrders) {
     return (
-      <div className="min-h-screen bg-obsidian">
+      <div className="min-h-screen bg-background">
         <CheckoutHeader onNavigate={onNavigate} />
         <div className="flex flex-col items-center justify-center min-h-screen px-4">
           <motion.div
@@ -406,7 +406,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   // ─── Success screen ────────────────────────────────────────────────────────
   if (completedOrders) {
     return (
-      <div className="min-h-screen bg-obsidian">
+      <div className="min-h-screen bg-background">
         <CheckoutHeader onNavigate={onNavigate} />
         <div className="pt-20">
           <OrderSuccess
@@ -422,7 +422,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
 
   // ─── Checkout form ─────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-obsidian">
+    <div className="min-h-screen bg-background">
       <CheckoutHeader onNavigate={onNavigate} />
 
       <main className="max-w-5xl mx-auto px-4 pt-24 pb-16">
@@ -446,7 +446,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="bg-obsidian-2 border border-border rounded-2xl p-6"
+              className="bg-card border border-border rounded-2xl p-6"
             >
               <h2 className="font-display text-xl font-bold text-gold mb-6 flex items-center gap-2">
                 <Package className="w-5 h-5" />
@@ -467,7 +467,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       if (errors.name)
                         setErrors((prev) => ({ ...prev, name: "" }));
                     }}
-                    className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
+                    className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
                     data-ocid="checkout.name.input"
                   />
                   {errors.name && (
@@ -493,7 +493,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       if (errors.phone)
                         setErrors((prev) => ({ ...prev, phone: "" }));
                     }}
-                    className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
+                    className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
                     data-ocid="checkout.phone.input"
                     inputMode="numeric"
                   />
@@ -520,7 +520,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       if (errors.street)
                         setErrors((prev) => ({ ...prev, street: "" }));
                     }}
-                    className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
+                    className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
                     data-ocid="checkout.street.input"
                   />
                   {errors.street && (
@@ -547,7 +547,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                         if (errors.city)
                           setErrors((prev) => ({ ...prev, city: "" }));
                       }}
-                      className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
+                      className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
                       data-ocid="checkout.city.input"
                     />
                     {errors.city && (
@@ -572,7 +572,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                         if (errors.pin)
                           setErrors((prev) => ({ ...prev, pin: "" }));
                       }}
-                      className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
+                      className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
                       data-ocid="checkout.pin.input"
                       inputMode="numeric"
                     />
@@ -603,7 +603,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       onKeyDown={(e) =>
                         e.key === "Enter" && handleApplyCoupon()
                       }
-                      className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground uppercase"
+                      className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground uppercase"
                       data-ocid="checkout.coupon.input"
                       disabled={!!appliedCoupon}
                     />
@@ -657,7 +657,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-obsidian-2 border border-border rounded-2xl p-6 sticky top-24"
+              className="bg-card border border-border rounded-2xl p-6 sticky top-24"
             >
               <h2 className="font-display text-xl font-bold text-gold mb-5 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
@@ -674,7 +674,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       className="flex items-center gap-3"
                       data-ocid={`checkout.order.item.${index + 1}`}
                     >
-                      <div className="w-12 h-14 rounded-lg overflow-hidden bg-obsidian-3 flex-shrink-0">
+                      <div className="w-12 h-14 rounded-lg overflow-hidden bg-obsidian-2 flex-shrink-0">
                         <img
                           src={info.image}
                           alt={info.name}

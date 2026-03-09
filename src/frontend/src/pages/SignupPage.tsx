@@ -50,7 +50,7 @@ export default function SignupPage({ onNavigate }: SignupPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Ambient background */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -75,7 +75,7 @@ export default function SignupPage({ onNavigate }: SignupPageProps) {
         className="relative z-10 w-full max-w-md"
         data-ocid="signup.panel"
       >
-        <div className="bg-obsidian-2 border border-gold-dim rounded-3xl p-8 md:p-10 shadow-gold-lg">
+        <div className="bg-card border border-gold-dim rounded-3xl p-8 md:p-10 shadow-gold-lg">
           {/* Logo */}
           <div className="text-center mb-10">
             <button
@@ -133,7 +133,7 @@ export default function SignupPage({ onNavigate }: SignupPageProps) {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleSaveProfile();
                   }}
-                  className="bg-obsidian-3 border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
+                  className="bg-background border-border focus:border-gold text-foreground placeholder:text-muted-foreground"
                   data-ocid="signup.name.input"
                   aria-describedby={nameError ? "name-error" : undefined}
                 />

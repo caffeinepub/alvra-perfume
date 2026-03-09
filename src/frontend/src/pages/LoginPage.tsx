@@ -20,13 +20,13 @@ export default function LoginPage({ onNavigate }: LoginPageProps) {
   }, [isLoginSuccess, identity, onNavigate]);
 
   return (
-    <div className="min-h-screen bg-obsidian flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Ambient background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 60% 60% at 50% 40%, oklch(0.78 0.13 75 / 0.07) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 60% at 50% 40%, oklch(0.65 0.13 20 / 0.06) 0%, transparent 70%)",
         }}
       />
       {/* Grain texture */}
@@ -46,7 +46,7 @@ export default function LoginPage({ onNavigate }: LoginPageProps) {
         data-ocid="login.panel"
       >
         {/* Card */}
-        <div className="bg-obsidian-2 border border-gold-dim rounded-3xl p-8 md:p-10 shadow-gold-lg">
+        <div className="bg-card border border-gold-dim rounded-3xl p-8 md:p-10 shadow-gold-lg">
           {/* Logo */}
           <div className="text-center mb-10">
             <button

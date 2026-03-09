@@ -90,9 +90,9 @@ export default {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
-        gold: "0 0 20px oklch(var(--gold) / 0.25), 0 0 40px oklch(var(--gold) / 0.1)",
-        "gold-lg": "0 0 40px oklch(var(--gold) / 0.35), 0 0 80px oklch(var(--gold) / 0.15)",
-        "card-dark": "0 4px 24px rgba(0,0,0,0.6)",
+        gold: "0 0 20px oklch(var(--gold) / 0.2), 0 0 40px oklch(var(--gold) / 0.08)",
+        "gold-lg": "0 0 40px oklch(var(--gold) / 0.25), 0 0 80px oklch(var(--gold) / 0.1)",
+        "card-dark": "0 4px 24px rgba(0,0,0,0.08)",
       },
       keyframes: {
         "accordion-down": {

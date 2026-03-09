@@ -396,7 +396,7 @@ export function DinoGame() {
             className="w-full max-w-md mx-auto"
             data-ocid="game.reward.modal"
           >
-            <div className="bg-obsidian-2 border border-gold-dim rounded-2xl p-8 text-center gold-glow-box">
+            <div className="bg-card border border-gold-dim rounded-2xl p-8 text-center gold-glow-box">
               {reward?.isFree ? (
                 <div className="text-5xl mb-3">🎉</div>
               ) : (
@@ -416,14 +416,14 @@ export function DinoGame() {
 
               {reward ? (
                 <>
-                  <div className="bg-obsidian border border-gold rounded-xl p-4 mb-5">
+                  <div className="bg-obsidian-2 border border-gold rounded-xl p-4 mb-5">
                     <p className="text-sm text-muted-foreground mb-1">
                       Your Reward
                     </p>
                     <p className="font-display text-2xl text-gold font-bold mb-3">
                       {reward.text}
                     </p>
-                    <div className="flex items-center justify-center gap-2 bg-obsidian-3 rounded-lg px-4 py-2 mb-3">
+                    <div className="flex items-center justify-center gap-2 bg-obsidian-2 rounded-lg px-4 py-2 mb-3">
                       <code className="text-gold-bright font-bold tracking-widest text-lg">
                         {reward.coupon}
                       </code>
@@ -445,7 +445,7 @@ export function DinoGame() {
                   )}
                 </>
               ) : (
-                <div className="bg-obsidian border border-border rounded-xl p-4 mb-5">
+                <div className="bg-obsidian-2 border border-border rounded-xl p-4 mb-5">
                   <p className="text-muted-foreground">
                     Score 500+ to unlock rewards!
                   </p>
@@ -482,7 +482,7 @@ export function DinoGame() {
           ].map((tier) => (
             <div
               key={tier.score}
-              className="bg-obsidian-2 border border-border rounded-lg px-2 py-2"
+              className="bg-card border border-border rounded-lg px-2 py-2"
             >
               <div className="text-gold font-bold">{tier.score}</div>
               <div>{tier.reward}</div>
@@ -525,7 +525,7 @@ export function DinoGameModal() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 30 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative w-full max-w-2xl bg-obsidian border border-gold-dim rounded-2xl p-6 overflow-y-auto"
+              className="relative w-full max-w-2xl bg-card border border-gold-dim rounded-2xl p-6 overflow-y-auto"
               style={{ maxHeight: "90vh" }}
             >
               {/* Header */}
@@ -541,7 +541,7 @@ export function DinoGameModal() {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="text-muted-foreground hover:text-gold transition-colors p-2 rounded-lg hover:bg-obsidian-3"
+                  className="text-muted-foreground hover:text-gold transition-colors p-2 rounded-lg hover:bg-obsidian-2"
                   data-ocid="game.close_button"
                 >
                   <X className="w-5 h-5" />
