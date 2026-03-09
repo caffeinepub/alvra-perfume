@@ -35,7 +35,11 @@ export function useGetCart() {
     queryKey: ["cart"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getCart();
+      try {
+        return await actor.getCart();
+      } catch {
+        return [];
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -74,7 +78,12 @@ export function useIsAdmin() {
     queryKey: ["isAdmin"],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.isCallerAdmin();
+      try {
+        return await actor.isCallerAdmin();
+      } catch {
+        // User may not be registered yet; treat as non-admin
+        return false;
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -112,7 +121,11 @@ export function useGetCallerProfile() {
     queryKey: ["callerProfile"],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getCallerUserProfile();
+      try {
+        return await actor.getCallerUserProfile();
+      } catch {
+        return null;
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -128,6 +141,88 @@ export function useSaveCallerProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["callerProfile"] });
+    },
+  });
+}
+
+export function useRemoveFromCart() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (productId: bigint) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.removeFromCart(productId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+}
+
+export function useClearCart() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.clearCart();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+}
+
+export function usePlaceOrderWithAddress() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      quantity,
+      couponCode,
+      customerName,
+      customerPhone,
+      street,
+      city,
+      pinCode,
+    }: {
+      productId: bigint;
+      quantity: bigint;
+      couponCode: string | null;
+      customerName: string;
+      customerPhone: string;
+      street: string;
+      city: string;
+      pinCode: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.placeOrderWithAddress(
+        productId,
+        quantity,
+        couponCode,
+        customerName,
+        customerPhone,
+        street,
+        city,
+        pinCode,
+      );
+    },
+  });
+}
+
+export function useSetProductImage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      imageUrl,
+    }: { productId: bigint; imageUrl: string }) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.setProductImage(productId, imageUrl);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }

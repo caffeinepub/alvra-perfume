@@ -18,10 +18,13 @@ export interface CartItem {
 export interface Order {
     id: bigint;
     customerName: string;
+    street: string;
     couponUsed?: string;
     customerPhone: string;
+    city: string;
     productId: bigint;
     quantity: bigint;
+    pinCode: string;
     totalPrice: bigint;
 }
 export interface UserProfile {
@@ -31,6 +34,7 @@ export interface Product {
     id: bigint;
     name: string;
     description: string;
+    imageUrl?: string;
     category: string;
     price: bigint;
 }
@@ -55,8 +59,10 @@ export interface backendInterface {
     isAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     placeOrder(productId: bigint, quantity: bigint, couponCode: string | null, customerName: string, customerPhone: string): Promise<Order>;
+    placeOrderWithAddress(productId: bigint, quantity: bigint, couponCode: string | null, customerName: string, customerPhone: string, street: string, city: string, pinCode: string): Promise<Order>;
     removeFromCart(productId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setProductImage(productId: bigint, imageUrl: string): Promise<void>;
     updateContent(key: string, value: string): Promise<void>;
     validateCoupon(code: string): Promise<{
         code: string;

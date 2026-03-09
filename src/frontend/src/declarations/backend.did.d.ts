@@ -15,16 +15,20 @@ export interface ContentBlock { 'key' : string, 'value' : string }
 export interface Order {
   'id' : bigint,
   'customerName' : string,
+  'street' : string,
   'couponUsed' : [] | [string],
   'customerPhone' : string,
+  'city' : string,
   'productId' : bigint,
   'quantity' : bigint,
+  'pinCode' : string,
   'totalPrice' : bigint,
 }
 export interface Product {
   'id' : bigint,
   'name' : string,
   'description' : string,
+  'imageUrl' : [] | [string],
   'category' : string,
   'price' : bigint,
 }
@@ -32,7 +36,33 @@ export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface _CaffeineStorageCreateCertificateResult {
+  'method' : string,
+  'blob_hash' : string,
+}
+export interface _CaffeineStorageRefillInformation {
+  'proposed_top_up_amount' : [] | [bigint],
+}
+export interface _CaffeineStorageRefillResult {
+  'success' : [] | [boolean],
+  'topped_up_amount' : [] | [bigint],
+}
 export interface _SERVICE {
+  '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
+  '_caffeineStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
+  '_caffeineStorageConfirmBlobDeletion' : ActorMethod<
+    [Array<Uint8Array>],
+    undefined
+  >,
+  '_caffeineStorageCreateCertificate' : ActorMethod<
+    [string],
+    _CaffeineStorageCreateCertificateResult
+  >,
+  '_caffeineStorageRefillCashier' : ActorMethod<
+    [[] | [_CaffeineStorageRefillInformation]],
+    _CaffeineStorageRefillResult
+  >,
+  '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addToCart' : ActorMethod<[bigint, bigint], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
@@ -52,8 +82,13 @@ export interface _SERVICE {
     [bigint, bigint, [] | [string], string, string],
     Order
   >,
+  'placeOrderWithAddress' : ActorMethod<
+    [bigint, bigint, [] | [string], string, string, string, string, string],
+    Order
+  >,
   'removeFromCart' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setProductImage' : ActorMethod<[bigint, string], undefined>,
   'updateContent' : ActorMethod<[string, string], undefined>,
   'validateCoupon' : ActorMethod<
     [string],

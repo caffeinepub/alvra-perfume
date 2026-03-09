@@ -8,17 +8,22 @@ import {
   Loader2,
   Lock,
   Save,
+  Shield,
   Upload,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
+  useGetAllProducts,
   useGetContent,
   useIsAdmin,
+  useSetProductImage,
   useUpdateContent,
 } from "../hooks/useQueries";
+import { getSecretParameter } from "../utils/urlParams";
 
 interface AdminPageProps {
   onNavigate: (path: string) => void;
@@ -220,9 +225,17 @@ function useContentMap(blocks: { key: string; value: string }[]) {
 // ─── Admin Page ───────────────────────────────────────────────────────────────
 export default function AdminPage({ onNavigate }: AdminPageProps) {
   const { identity } = useInternetIdentity();
-  const { data: isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+  const { actor } = useActor();
+  const {
+    data: isAdmin,
+    isLoading: isAdminLoading,
+    refetch: refetchAdmin,
+  } = useIsAdmin();
   const { data: contentBlocks = [] } = useGetContent();
+  const { data: backendProducts = [] } = useGetAllProducts();
   const updateContent = useUpdateContent();
+  const setProductImage = useSetProductImage();
+  const [isClaimingAdmin, setIsClaimingAdmin] = useState(false);
 
   const contentMap = useContentMap(contentBlocks);
 
@@ -350,8 +363,12 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
 
   const saveProduct = async (index: number) => {
     const p = products[index];
+    // Find the backend product ID (1-indexed matches backend IDs)
+    const backendProduct = backendProducts.find(
+      (bp) => bp.id === BigInt(index + 1),
+    );
     try {
-      await Promise.all([
+      const contentUpdates = [
         updateContent.mutateAsync({
           key: `product.${index + 1}.name`,
           value: p.name,
@@ -372,7 +389,20 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
               }),
             ]
           : []),
-      ]);
+      ];
+
+      // Also update the backend product image via setProductImage
+      const imageUpdates =
+        p.image && backendProduct
+          ? [
+              setProductImage.mutateAsync({
+                productId: backendProduct.id,
+                imageUrl: p.image,
+              }),
+            ]
+          : [];
+
+      await Promise.all([...contentUpdates, ...imageUpdates]);
       toast.success(`Product ${index + 1} saved!`);
     } catch {
       toast.error(`Failed to save product ${index + 1}.`);
@@ -442,6 +472,33 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
     setDraggedId(null);
   };
 
+  // ─── Claim admin handler ──────────────────────────────────────────────────
+  const handleClaimAdmin = async () => {
+    if (!actor) {
+      toast.error("Please wait for the connection to load.");
+      return;
+    }
+    const adminToken = getSecretParameter("caffeineAdminToken") || "";
+    if (!adminToken) {
+      toast.error(
+        "Admin token not found. Please open the admin link sent to you by ALVRA support.",
+      );
+      return;
+    }
+    setIsClaimingAdmin(true);
+    try {
+      await actor._initializeAccessControlWithSecret(adminToken);
+      await refetchAdmin();
+      toast.success("Admin access granted! Welcome to the Admin Panel.");
+    } catch {
+      toast.error(
+        "Could not claim admin access. The admin role may already be assigned to another account.",
+      );
+    } finally {
+      setIsClaimingAdmin(false);
+    }
+  };
+
   // ─── Access denied states ─────────────────────────────────────────────────
   if (!identity) {
     return (
@@ -493,23 +550,48 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-obsidian-2 border border-destructive/50 rounded-3xl p-10 text-center max-w-md"
+          className="bg-obsidian-2 border border-gold-dim rounded-3xl p-10 text-center max-w-md"
           data-ocid="admin.access_denied.panel"
         >
-          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <Shield className="w-12 h-12 text-gold mx-auto mb-4" />
           <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-            Access Denied
+            Admin Access Required
           </h2>
-          <p className="text-muted-foreground text-sm mb-6">
-            This page is reserved for ALVRA administrators only.
+          <p className="text-muted-foreground text-sm mb-2">
+            You are signed in but do not have admin access yet.
           </p>
-          <Button
-            onClick={() => onNavigate("/")}
-            className="bg-gold text-obsidian font-bold hover:bg-gold-bright"
-            data-ocid="admin.back_home.primary_button"
-          >
-            Back to Store
-          </Button>
+          <p className="text-muted-foreground text-xs mb-8">
+            If you are the ALVRA owner, click "Claim Admin Access" below. You
+            only need to do this once.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={handleClaimAdmin}
+              disabled={isClaimingAdmin}
+              className="bg-gold text-obsidian font-bold hover:bg-gold-bright gap-2"
+              data-ocid="admin.claim_admin.primary_button"
+            >
+              {isClaimingAdmin ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Claiming Access...
+                </>
+              ) : (
+                <>
+                  <Shield className="w-4 h-4" />
+                  Claim Admin Access
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => onNavigate("/")}
+              variant="outline"
+              className="border-border text-muted-foreground hover:text-gold hover:border-gold-dim"
+              data-ocid="admin.back_home.primary_button"
+            >
+              Back to Store
+            </Button>
+          </div>
         </motion.div>
       </div>
     );

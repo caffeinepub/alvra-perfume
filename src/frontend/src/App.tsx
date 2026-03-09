@@ -37,6 +37,8 @@ import {
   useIsAdmin,
 } from "./hooks/useQueries";
 import AdminPage from "./pages/AdminPage";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 
@@ -312,7 +314,7 @@ function Header({
 
             <button
               type="button"
-              onClick={() => scrollTo("shop")}
+              onClick={() => onNavigate("/cart")}
               className="relative text-gold hover:text-gold-bright transition-colors p-2 rounded-lg hover:bg-obsidian-3"
               data-ocid="header.cart_button"
               aria-label="Shopping cart"
@@ -1231,6 +1233,7 @@ function HomePage({
   onNavigate: (path: string) => void;
 }) {
   const { actor } = useActor();
+  const { identity } = useInternetIdentity();
   const { data: cartItems = [] } = useGetCart();
   const addToCart = useAddToCart();
   const initializeProducts = useInitializeProducts();
@@ -1244,6 +1247,16 @@ function HomePage({
   }, [actor, initMutate]);
 
   const handleAddToCart = (productId: bigint) => {
+    if (!identity) {
+      toast.info("Please sign in to add items to your cart.", {
+        description: "You need an account to shop.",
+        action: {
+          label: "Sign In",
+          onClick: () => onNavigate("/login"),
+        },
+      });
+      return;
+    }
     addToCart.mutate(
       { productId, quantity: 1n },
       {
@@ -1331,6 +1344,26 @@ export default function App() {
             transition={{ duration: 0.2 }}
           >
             <AdminPage onNavigate={navigate} />
+          </motion.div>
+        ) : path === "/cart" ? (
+          <motion.div
+            key="cart"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <CartPage onNavigate={navigate} />
+          </motion.div>
+        ) : path === "/checkout" ? (
+          <motion.div
+            key="checkout"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <CheckoutPage onNavigate={navigate} />
           </motion.div>
         ) : (
           <motion.div
