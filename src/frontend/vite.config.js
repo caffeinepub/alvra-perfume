@@ -12,8 +12,13 @@ process.env.II_URL = process.env.II_URL || ii_url;
 process.env.STORAGE_GATEWAY_URL =
   process.env.STORAGE_GATEWAY_URL || "https://blob.caffeine.ai";
 
+// When building for GitHub Pages, use the repo name as base path
+// Set VITE_GITHUB_PAGES=true in the GitHub Actions env to enable this
+const isGitHubPages = process.env.VITE_GITHUB_PAGES === "true";
+
 export default defineConfig({
   logLevel: "error",
+  base: "/",
   build: {
     emptyOutDir: true,
     sourcemap: false,
