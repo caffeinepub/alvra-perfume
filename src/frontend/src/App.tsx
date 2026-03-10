@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion, useInView } from "motion/react";
+import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DinoGameModal } from "./components/DinoGame";
@@ -197,6 +198,353 @@ const REVIEWS = [
     product: "Men Formal",
   },
 ];
+
+// ─── Scrolling Banner Strip ───────────────────────────────────────────────────
+const BANNER_ITEMS = [
+  {
+    bg: "oklch(0.55 0.18 25)",
+    text: "🎉 Launch Offer: Get ALVRA for just ₹199 today!",
+    sub: "Limited time",
+  },
+  {
+    bg: "oklch(0.50 0.15 280)",
+    text: "💳 Buy Now, Pay Later — ₹199 today, rest weekly",
+    sub: "Easy EMI",
+  },
+  {
+    bg: "oklch(0.45 0.12 160)",
+    text: "🎮 Play Dino Game & Win up to FREE Perfume!",
+    sub: "Play & Win",
+  },
+  {
+    bg: "oklch(0.52 0.16 45)",
+    text: "🌸 Free Flower Seeds Gift with every order",
+    sub: "Special Gift",
+  },
+  {
+    bg: "oklch(0.48 0.14 200)",
+    text: "✨ Premium ingredients. Long lasting fragrance.",
+    sub: "ALVRA Promise",
+  },
+  {
+    bg: "oklch(0.50 0.18 0)",
+    text: "📦 Free mini travel spray with every purchase",
+    sub: "Bundle Offer",
+  },
+];
+
+function TopHeroBanner() {
+  const stripRef = useRef<HTMLDivElement>(null);
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    let animId: number;
+    let pos = 0;
+    const speed = 0.7;
+    const half = el.scrollWidth / 2;
+    function tick() {
+      pos += speed;
+      if (pos >= half) pos = 0;
+      el!.style.transform = `translateX(-${pos}px)`;
+      animId = requestAnimationFrame(tick);
+    }
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  const tickerItems = [...BANNER_ITEMS, ...BANNER_ITEMS];
+
+  const cards = [
+    {
+      emoji: "🎮",
+      title: "PLAY DINO & WIN",
+      desc: "Score 10,000+ = FREE Perfume!",
+      cta: "Play Now",
+      action: () => scrollTo("play-win"),
+      badge: null,
+      accent: "from-purple-900/80 to-indigo-900/80",
+    },
+    {
+      emoji: "🎉",
+      title: "LAUNCH OFFER",
+      desc: "Premium Perfume for just ₹199!",
+      cta: "Shop Now",
+      action: () => scrollTo("shop"),
+      badge: null,
+      accent: "from-rose-900/80 to-orange-900/80",
+    },
+    {
+      emoji: "💳",
+      title: "EASY EMI",
+      desc: "Buy Now, Pay ₹199 today",
+      cta: null,
+      action: null,
+      badge: "New",
+      accent: "from-emerald-900/80 to-teal-900/80",
+    },
+    {
+      emoji: "🌸",
+      title: "FREE GIFT",
+      desc: "Flower Seeds with every order",
+      cta: null,
+      action: null,
+      badge: "Limited",
+      accent: "from-pink-900/80 to-fuchsia-900/80",
+    },
+  ];
+
+  return (
+    <section
+      data-ocid="banner.section"
+      className="relative w-full overflow-hidden"
+      style={{ minHeight: "320px" }}
+    >
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('/assets/generated/top-hero-banner.dim_1400x400.jpg')",
+        }}
+      />
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/55" />
+
+      {/* Content */}
+      <div
+        className="relative z-10 flex flex-col justify-center"
+        style={{ minHeight: "280px" }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-10">
+          {/* Banner headline */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-8"
+          >
+            <p className="text-gold font-display text-xs uppercase tracking-[0.25em] mb-1 opacity-80">
+              ALVRA Perfume — Exclusive Offers
+            </p>
+            <h1 className="text-white font-display text-3xl md:text-4xl font-bold leading-tight">
+              New Offers & Much More
+            </h1>
+          </motion.div>
+
+          {/* Promo cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {cards.map((card, i) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className={`relative rounded-2xl bg-gradient-to-br ${card.accent} backdrop-blur-md border border-white/10 p-4 md:p-5 flex flex-col gap-2`}
+              >
+                {card.badge && (
+                  <span className="absolute top-3 right-3 bg-gold text-obsidian text-xs font-bold px-2 py-0.5 rounded-full">
+                    {card.badge}
+                  </span>
+                )}
+                <span className="text-2xl md:text-3xl">{card.emoji}</span>
+                <p className="text-white font-bold text-sm md:text-base leading-tight">
+                  {card.title}
+                </p>
+                <p className="text-white/75 text-xs md:text-sm leading-snug">
+                  {card.desc}
+                </p>
+                {card.cta && card.action && (
+                  <button
+                    type="button"
+                    onClick={card.action}
+                    className="mt-auto self-start bg-gold hover:bg-gold-bright text-obsidian text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
+                  >
+                    {card.cta}
+                  </button>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom ticker strip */}
+      <div
+        className="relative z-10 overflow-hidden border-t border-white/10"
+        style={{ height: "42px", background: "rgba(0,0,0,0.6)" }}
+      >
+        <div
+          ref={stripRef}
+          className="flex gap-3 items-center h-full"
+          style={{ width: "max-content", willChange: "transform" }}
+        >
+          {tickerItems.map((item, idx) => (
+            <div
+              key={`${item.text}-${idx}`}
+              className="flex items-center gap-2 px-5 shrink-0"
+            >
+              <div
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ background: item.bg }}
+              />
+              <p className="text-white/85 font-medium text-sm whitespace-nowrap">
+                {item.text}
+              </p>
+              <span className="text-white/40 text-xs">·</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Custom Sectors Section ───────────────────────────────────────────────────
+type CustomSector = {
+  id: string;
+  name: string;
+  tagline: string;
+  price: string;
+  style: string;
+  image?: string;
+};
+
+const SECTOR_STYLE_MAP: Record<
+  string,
+  { bg: string; text: string; sub: string; border: string; badge: string }
+> = {
+  Minimal: {
+    bg: "bg-white",
+    text: "text-gray-900",
+    sub: "text-gray-500",
+    border: "border border-gray-200",
+    badge: "bg-gray-100 text-gray-700",
+  },
+  Bold: {
+    bg: "bg-gray-950",
+    text: "text-white",
+    sub: "text-yellow-400",
+    border: "border border-yellow-500",
+    badge: "bg-yellow-500 text-black",
+  },
+  Elegant: {
+    bg: "bg-amber-50",
+    text: "text-amber-900 font-semibold",
+    sub: "text-amber-700",
+    border: "border border-amber-300",
+    badge: "bg-amber-200 text-amber-900",
+  },
+  "Dark Luxury": {
+    bg: "bg-zinc-950",
+    text: "text-amber-300",
+    sub: "text-amber-200/70",
+    border: "border border-amber-700/50",
+    badge: "bg-amber-700/30 text-amber-300",
+  },
+  Floral: {
+    bg: "bg-pink-50",
+    text: "text-rose-800",
+    sub: "text-rose-600",
+    border: "border border-pink-200",
+    badge: "bg-pink-200 text-rose-800",
+  },
+  Fresh: {
+    bg: "bg-teal-50",
+    text: "text-teal-900",
+    sub: "text-teal-600",
+    border: "border border-teal-200",
+    badge: "bg-teal-200 text-teal-800",
+  },
+};
+
+function CustomSectorsSection() {
+  const [sectors, setSectors] = React.useState<CustomSector[]>([]);
+
+  React.useEffect(() => {
+    const cm = readAll();
+    if (cm["custom.sectors"]) {
+      try {
+        const parsed = JSON.parse(cm["custom.sectors"]) as CustomSector[];
+        if (Array.isArray(parsed)) setSectors(parsed);
+      } catch {
+        /* ignore */
+      }
+    }
+    const unsub = onContentUpdate(() => {
+      const cm2 = readAll();
+      if (cm2["custom.sectors"]) {
+        try {
+          const parsed = JSON.parse(cm2["custom.sectors"]) as CustomSector[];
+          if (Array.isArray(parsed)) setSectors(parsed);
+        } catch {
+          /* ignore */
+        }
+      }
+    });
+    return unsub;
+  }, []);
+
+  if (sectors.length === 0) return null;
+
+  return (
+    <section className="py-24 bg-background" data-ocid="custom.sectors.section">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <FadeIn>
+          <SectionHeading
+            title="Our Perfume Collections"
+            subtitle="Curated collections for every personality and occasion."
+          />
+        </FadeIn>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {sectors.map((sector, i) => {
+            const styles =
+              SECTOR_STYLE_MAP[sector.style] ?? SECTOR_STYLE_MAP.Minimal;
+            return (
+              <FadeIn key={sector.id} delay={i * 0.1}>
+                <div
+                  className={`rounded-2xl overflow-hidden shadow-lg ${styles.bg} ${styles.border} flex flex-col`}
+                  data-ocid={`custom.sectors.item.${i + 1}`}
+                >
+                  {sector.image && (
+                    <div className="w-full aspect-video overflow-hidden">
+                      <img
+                        src={sector.image}
+                        alt={sector.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6 flex flex-col gap-2 flex-1">
+                    <span
+                      className={`self-start text-xs font-bold px-2 py-0.5 rounded-full ${styles.badge}`}
+                    >
+                      {sector.style}
+                    </span>
+                    <h3 className={`text-xl font-bold ${styles.text}`}>
+                      {sector.name}
+                    </h3>
+                    <p className={`text-sm ${styles.sub}`}>{sector.tagline}</p>
+                    {sector.price && (
+                      <p
+                        className={`text-lg font-bold mt-auto pt-3 ${styles.text}`}
+                      >
+                        {sector.price}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </FadeIn>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 function Header({
@@ -655,16 +1003,6 @@ function GameSection() {
       data-ocid="game.section"
       className="py-0 bg-obsidian-2 relative overflow-hidden"
     >
-      {/* Full-width banner */}
-      <div className="w-full mb-0">
-        <img
-          src="/assets/generated/dino-banner.dim_1200x300.jpg"
-          alt="ALVRA Dino Challenge - Play & Win"
-          className="w-full object-cover"
-          style={{ maxHeight: "300px", objectFit: "cover", display: "block" }}
-        />
-      </div>
-
       <div
         className="absolute pointer-events-none opacity-40"
         style={{
@@ -1351,10 +1689,12 @@ function HomePage({
   return (
     <div className="bg-background min-h-screen">
       <Header cartCount={cartCount} onNavigate={onNavigate} />
+      <TopHeroBanner />
       <main>
         <HeroSection />
         <GameSection />
         <ProductsSection onAddToCart={handleAddToCart} />
+        <CustomSectorsSection />
         <LaunchOfferSection />
         <EMISection />
         <WhySection />

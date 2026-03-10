@@ -280,9 +280,27 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
   const [saving, setSaving] = useState<string | null>(null);
 
   // Section ordering
-  const DEFAULT_ORDER = ["hero", "products", "offer", "why"];
+  const DEFAULT_ORDER = ["hero", "products", "offer", "why", "custom-sectors"];
   const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_ORDER);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+
+  // Custom sectors
+  type CustomSectorItem = {
+    id: string;
+    name: string;
+    tagline: string;
+    price: string;
+    style: string;
+    image?: string;
+  };
+  const [customSectors, setCustomSectors] = useState<CustomSectorItem[]>([]);
+  const [newSector, setNewSector] = useState<Omit<CustomSectorItem, "id">>({
+    name: "",
+    tagline: "",
+    price: "",
+    style: "Minimal",
+  });
+  const [newSectorImage, setNewSectorImage] = useState<string | undefined>();
 
   // Hero
   const [heroTitle, setHeroTitle] = useState("BE UNFORGETTABLE");
@@ -372,6 +390,14 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
       try {
         const saved = JSON.parse(cm["section.order"]) as string[];
         if (Array.isArray(saved) && saved.length > 0) setSectionOrder(saved);
+      } catch {
+        /* ignore */
+      }
+    }
+    if (cm["custom.sectors"]) {
+      try {
+        const saved = JSON.parse(cm["custom.sectors"]) as CustomSectorItem[];
+        if (Array.isArray(saved)) setCustomSectors(saved);
       } catch {
         /* ignore */
       }
@@ -693,6 +719,183 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
               label="Save Features"
               ocid="admin.why.save_button"
             />
+          </div>
+        </div>
+      ),
+    },
+    "custom-sectors": {
+      title: "Add New Perfume Sector",
+      content: (
+        <div className="space-y-6" data-ocid="admin.custom_sectors.section">
+          {/* Existing sectors list */}
+          {customSectors.length > 0 && (
+            <div className="space-y-3">
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider block">
+                Your Perfume Sectors ({customSectors.length})
+              </Label>
+              {customSectors.map((sector, i) => (
+                <div
+                  key={sector.id}
+                  className="flex items-center justify-between gap-3 bg-obsidian-2 border border-border rounded-xl p-4"
+                  data-ocid={`admin.custom_sectors.item.${i + 1}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {sector.image && (
+                      <img
+                        src={sector.image}
+                        alt={sector.name}
+                        className="w-12 h-12 rounded-lg object-cover shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-foreground font-semibold text-sm truncate">
+                        {sector.name}
+                      </p>
+                      <p className="text-muted-foreground text-xs truncate">
+                        {sector.tagline}
+                      </p>
+                      <p className="text-gold text-xs font-bold">
+                        {sector.price}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="bg-gold/20 text-gold text-xs px-2 py-0.5 rounded-full">
+                      {sector.style}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = customSectors.filter((_, j) => j !== i);
+                        setCustomSectors(updated);
+                        writeKey("custom.sectors", JSON.stringify(updated));
+                        toast.success("Sector deleted.");
+                      }}
+                      className="text-red-400 hover:text-red-300 transition-colors p-1.5 rounded-lg hover:bg-red-900/20"
+                      data-ocid={`admin.custom_sectors.delete_button.${i + 1}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new sector form */}
+          <div className="bg-obsidian-2 border border-border rounded-xl p-5 space-y-4">
+            <p className="text-gold text-xs font-bold uppercase tracking-wider">
+              Add New Perfume Sector
+            </p>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <EditableField
+                label="Perfume Name"
+                value={newSector.name}
+                onChange={(v) => setNewSector((prev) => ({ ...prev, name: v }))}
+                ocid="admin.custom_sectors.name.input"
+              />
+              <EditableField
+                label="Tagline / Description"
+                value={newSector.tagline}
+                onChange={(v) =>
+                  setNewSector((prev) => ({ ...prev, tagline: v }))
+                }
+                ocid="admin.custom_sectors.tagline.input"
+              />
+              <EditableField
+                label="Price (e.g. ₹999)"
+                value={newSector.price}
+                onChange={(v) =>
+                  setNewSector((prev) => ({ ...prev, price: v }))
+                }
+                ocid="admin.custom_sectors.price.input"
+              />
+            </div>
+
+            {/* Style selector */}
+            <div>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+                Card Style
+              </Label>
+              <div
+                className="flex flex-wrap gap-2"
+                data-ocid="admin.custom_sectors.style.toggle"
+              >
+                {[
+                  "Minimal",
+                  "Bold",
+                  "Elegant",
+                  "Dark Luxury",
+                  "Floral",
+                  "Fresh",
+                ].map((style) => (
+                  <button
+                    type="button"
+                    key={style}
+                    onClick={() => setNewSector((prev) => ({ ...prev, style }))}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                      newSector.style === style
+                        ? "bg-gold text-obsidian border-gold"
+                        : "bg-transparent text-muted-foreground border-border hover:border-gold/50"
+                    }`}
+                  >
+                    {style}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Image upload */}
+            <div data-ocid="admin.custom_sectors.image.dropzone">
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+                Sector Image (optional)
+              </Label>
+              <ImageDropZone
+                currentSrc={newSectorImage}
+                fallbackSrc=""
+                label="Sector Image"
+                onImageChange={setNewSectorImage}
+                ocid="admin.custom_sectors.image.dropzone"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newSector.name.trim()) {
+                    toast.error("Please enter a perfume name.");
+                    return;
+                  }
+                  const sector: CustomSectorItem = {
+                    id: Date.now().toString(),
+                    name: newSector.name,
+                    tagline: newSector.tagline,
+                    price: newSector.price,
+                    style: newSector.style,
+                    image: newSectorImage,
+                  };
+                  const updated = [...customSectors, sector];
+                  setCustomSectors(updated);
+                  writeKey("custom.sectors", JSON.stringify(updated));
+                  setNewSector({
+                    name: "",
+                    tagline: "",
+                    price: "",
+                    style: "Minimal",
+                  });
+                  setNewSectorImage(undefined);
+                  toast.success(
+                    "Perfume sector added! It will appear on your website.",
+                  );
+                }}
+                className="bg-gold hover:bg-gold-bright text-obsidian font-bold text-sm px-6 py-2.5 rounded-xl transition-colors flex items-center gap-2"
+                data-ocid="admin.custom_sectors.add_button"
+              >
+                <span>+ Add Perfume Sector</span>
+              </button>
+            </div>
           </div>
         </div>
       ),
