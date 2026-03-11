@@ -1,28 +1,32 @@
 # ALVRA Perfume
 
 ## Current State
-Full-stack perfume e-commerce site with hero, dino game, products, cart, checkout, admin panel, and auth pages. Three known broken flows:
-1. "Add to Cart" fails silently for unauthenticated users or shows a toast error because `addToCart` requires user role.
-2. Checkout page may fail when `couponCode` is null (type mismatch between frontend null and Motoko `?Text`).
-3. Admin page shows "Access Denied" with no way for the owner to self-promote, making the admin panel completely inaccessible.
+The homepage is a large single-file App.tsx with multiple sections: scrolling promo banner, cinematic hero, Dino game, products, offers, EMI, reviews, Instagram grid, footer. The design uses teal/emerald branding with white cards.
 
 ## Requested Changes (Diff)
 
 ### Add
-- "Claim Admin" button in AdminPage (visible when signed in but not yet admin) — uses `_initializeAccessControlWithSecret` with the admin token from URL params to self-register as admin.
-- Login prompt / redirect in App when user clicks "Add to Cart" while not signed in.
+- Hero image carousel with large product photo, thumbnail strip, and dot indicators
+- Category filter row: Floral, Woody, Oriental, Fresh pill buttons
+- MEN / WOMEN product grid section with two-column layout
+- Clean minimalist header: hamburger menu left, ALVRA logo centered, cart icon right
 
 ### Modify
-- `handleAddToCart` in App.tsx: if not authenticated, navigate to `/login` with a toast explaining why.
-- `placeOrderWithAddress` call in CheckoutPage: ensure null coupon is passed correctly (already matches backend, but verify the mutation handles it properly).
-- AdminPage "Access Denied" screen: add a "Claim Admin Access" button that calls `_initializeAccessControlWithSecret` and refreshes the admin check.
-- `useActor` hook: `_initializeAccessControlWithSecret` is already called on login — verify this registers the user properly and that the admin token is available.
+- Redesign the entire homepage layout to match the user's mockup (unnamed-1.jpg): clean white background, modern e-commerce look similar to Myntra/Nykaa/Meesho
+- Hero section becomes a swipeable image carousel with thumbnail navigation
+- Product section becomes a two-column grid split by MEN / WOMEN with a divider
+- Header simplified to minimal top bar
 
 ### Remove
-- Nothing removed.
+- The current cinematic golden hero banner
+- The current 4-card promo strip
+- Cluttered promo cards in hero area
 
 ## Implementation Plan
-1. Fix App.tsx: add `identity` check to `handleAddToCart`; if not logged in, show toast and navigate to `/login`.
-2. Fix AdminPage: on "Access Denied" screen, add a "Claim Admin Access" button that calls `actor._initializeAccessControlWithSecret(adminToken)` then invalidates the `isAdmin` query, giving the owner a path to become admin.
-3. Fix CheckoutPage: verify coupon null passing, add error handling so the order attempt gracefully handles network/auth errors.
-4. Validate and deploy.
+1. Rebuild the header as a clean minimal top bar: hamburger icon left, ALVRA centered in teal, cart icon right
+2. Add a side-scrolling promotional ticker strip just below header
+3. Create a hero image carousel with large main image, thumbnail strip at bottom, and dot indicators
+4. Add a horizontal category pill row: All, Floral, Woody, Oriental, Fresh
+5. Rebuild the product section as MEN / WOMEN two-column grid with a center divider
+6. Keep the Dino game section inline below the category row
+7. Keep footer, reviews, and cart/checkout pages unchanged

@@ -16,6 +16,7 @@ import {
   Menu,
   MessageCircle,
   Package,
+  Search,
   Settings,
   ShoppingCart,
   Sparkles,
@@ -47,7 +48,6 @@ import { onContentUpdate, readAll } from "./utils/contentStore";
 // ─── Simple client-side router (hash-based for ICP hosting compatibility) ────
 function readHashPath(): string {
   const hash = window.location.hash;
-  // "#/admin" -> "/admin", "#/" -> "/", "" -> "/"
   if (hash.startsWith("#/")) return hash.slice(1);
   if (hash === "#" || hash === "") return "/";
   if (hash.startsWith("#")) return `/${hash.slice(1)}`;
@@ -58,9 +58,7 @@ function useRouter() {
   const [path, setPath] = useState<string>(readHashPath);
 
   useEffect(() => {
-    // Re-read on mount so the initial hash is always reflected after hydration
     setPath(readHashPath());
-
     const handleChange = () => setPath(readHashPath());
     window.addEventListener("popstate", handleChange);
     window.addEventListener("hashchange", handleChange);
@@ -79,7 +77,7 @@ function useRouter() {
   return { path, navigate };
 }
 
-// ─── Fade-in wrapper ───────────────────────────────────────────────────────────
+// ─── Fade-in wrapper ─────────────────────────────────────────────────────────────
 function FadeIn({
   children,
   delay = 0,
@@ -104,14 +102,14 @@ function FadeIn({
   );
 }
 
-// ─── Section Heading ─────────────────────────────────────────────────────────
+// ─── Section Heading ───────────────────────────────────────────────────────────────────
 function SectionHeading({
   title,
   subtitle,
 }: { title: string; subtitle?: string }) {
   return (
     <div className="text-center mb-14">
-      <h2 className="font-display text-4xl md:text-5xl font-bold text-gold gold-glow mb-4">
+      <h2 className="font-display text-4xl md:text-5xl font-bold text-gold mb-4">
         {title}
       </h2>
       {subtitle && (
@@ -119,16 +117,16 @@ function SectionHeading({
           {subtitle}
         </p>
       )}
-      <div className="flex items-center justify-center gap-2 mt-4">
-        <div className="h-px w-16 bg-gold-dim" />
-        <Sparkles className="w-4 h-4 text-gold" />
-        <div className="h-px w-16 bg-gold-dim" />
+      <div className="flex items-center justify-center gap-3 mt-5">
+        <div className="h-0.5 w-20 rounded-full bg-gold" />
+        <div className="w-2 h-2 rounded-full bg-gold" />
+        <div className="h-0.5 w-20 rounded-full bg-gold" />
       </div>
     </div>
   );
 }
 
-// ─── Products data (with content map overrides) ───────────────────────────────
+// ─── Products data (with content map overrides) ─────────────────────────────────────────────────
 function getProducts(cm: Record<string, string> = readAll()) {
   const BASE = [
     {
@@ -177,7 +175,7 @@ function getProducts(cm: Record<string, string> = readAll()) {
   }));
 }
 
-// ─── Reviews data ─────────────────────────────────────────────────────────────
+// ─── Reviews data ──────────────────────────────────────────────────────────────────────
 const REVIEWS = [
   {
     name: "Rahul S.",
@@ -199,211 +197,41 @@ const REVIEWS = [
   },
 ];
 
-// ─── Scrolling Banner Strip ───────────────────────────────────────────────────
-const BANNER_ITEMS = [
+// ─── Banner ticker items ───────────────────────────────────────────────────────────────────────
+const TICKER_ITEMS = [
   {
-    bg: "oklch(0.55 0.18 25)",
-    text: "🎉 Launch Offer: Get ALVRA for just ₹199 today!",
+    icon: "🎉",
+    text: "Launch Offer: Get ALVRA for just ₹199 today!",
     sub: "Limited time",
   },
   {
-    bg: "oklch(0.50 0.15 280)",
-    text: "💳 Buy Now, Pay Later — ₹199 today, rest weekly",
+    icon: "💳",
+    text: "Buy Now, Pay Later — ₹199 today, rest weekly",
     sub: "Easy EMI",
   },
   {
-    bg: "oklch(0.45 0.12 160)",
-    text: "🎮 Play Dino Game & Win up to FREE Perfume!",
+    icon: "🎮",
+    text: "Play Dino Game & Win up to FREE Perfume!",
     sub: "Play & Win",
   },
   {
-    bg: "oklch(0.52 0.16 45)",
-    text: "🌸 Free Flower Seeds Gift with every order",
+    icon: "🌸",
+    text: "Free Flower Seeds Gift with every order",
     sub: "Special Gift",
   },
   {
-    bg: "oklch(0.48 0.14 200)",
-    text: "✨ Premium ingredients. Long lasting fragrance.",
+    icon: "✨",
+    text: "Premium ingredients. Long lasting fragrance.",
     sub: "ALVRA Promise",
   },
   {
-    bg: "oklch(0.50 0.18 0)",
-    text: "📦 Free mini travel spray with every purchase",
+    icon: "📦",
+    text: "Free mini travel spray with every purchase",
     sub: "Bundle Offer",
   },
 ];
 
-function TopHeroBanner() {
-  const stripRef = useRef<HTMLDivElement>(null);
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    const el = stripRef.current;
-    if (!el) return;
-    let animId: number;
-    let pos = 0;
-    const speed = 0.7;
-    const half = el.scrollWidth / 2;
-    function tick() {
-      pos += speed;
-      if (pos >= half) pos = 0;
-      el!.style.transform = `translateX(-${pos}px)`;
-      animId = requestAnimationFrame(tick);
-    }
-    animId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animId);
-  }, []);
-
-  const tickerItems = [...BANNER_ITEMS, ...BANNER_ITEMS];
-
-  const cards = [
-    {
-      emoji: "🎮",
-      title: "PLAY DINO & WIN",
-      desc: "Score 10,000+ = FREE Perfume!",
-      cta: "Play Now",
-      action: () => scrollTo("play-win"),
-      badge: null,
-      accent: "from-purple-900/80 to-indigo-900/80",
-    },
-    {
-      emoji: "🎉",
-      title: "LAUNCH OFFER",
-      desc: "Premium Perfume for just ₹199!",
-      cta: "Shop Now",
-      action: () => scrollTo("shop"),
-      badge: null,
-      accent: "from-rose-900/80 to-orange-900/80",
-    },
-    {
-      emoji: "💳",
-      title: "EASY EMI",
-      desc: "Buy Now, Pay ₹199 today",
-      cta: null,
-      action: null,
-      badge: "New",
-      accent: "from-emerald-900/80 to-teal-900/80",
-    },
-    {
-      emoji: "🌸",
-      title: "FREE GIFT",
-      desc: "Flower Seeds with every order",
-      cta: null,
-      action: null,
-      badge: "Limited",
-      accent: "from-pink-900/80 to-fuchsia-900/80",
-    },
-  ];
-
-  return (
-    <section
-      data-ocid="banner.section"
-      className="relative w-full overflow-hidden"
-      style={{ minHeight: "320px" }}
-    >
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('/assets/generated/top-hero-banner.dim_1400x400.jpg')",
-        }}
-      />
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/55" />
-
-      {/* Content */}
-      <div
-        className="relative z-10 flex flex-col justify-center"
-        style={{ minHeight: "280px" }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-10">
-          {/* Banner headline */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-8"
-          >
-            <p className="text-gold font-display text-xs uppercase tracking-[0.25em] mb-1 opacity-80">
-              ALVRA Perfume — Exclusive Offers
-            </p>
-            <h1 className="text-white font-display text-3xl md:text-4xl font-bold leading-tight">
-              New Offers & Much More
-            </h1>
-          </motion.div>
-
-          {/* Promo cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {cards.map((card, i) => (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className={`relative rounded-2xl bg-gradient-to-br ${card.accent} backdrop-blur-md border border-white/10 p-4 md:p-5 flex flex-col gap-2`}
-              >
-                {card.badge && (
-                  <span className="absolute top-3 right-3 bg-gold text-obsidian text-xs font-bold px-2 py-0.5 rounded-full">
-                    {card.badge}
-                  </span>
-                )}
-                <span className="text-2xl md:text-3xl">{card.emoji}</span>
-                <p className="text-white font-bold text-sm md:text-base leading-tight">
-                  {card.title}
-                </p>
-                <p className="text-white/75 text-xs md:text-sm leading-snug">
-                  {card.desc}
-                </p>
-                {card.cta && card.action && (
-                  <button
-                    type="button"
-                    onClick={card.action}
-                    className="mt-auto self-start bg-gold hover:bg-gold-bright text-obsidian text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
-                  >
-                    {card.cta}
-                  </button>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom ticker strip */}
-      <div
-        className="relative z-10 overflow-hidden border-t border-white/10"
-        style={{ height: "42px", background: "rgba(0,0,0,0.6)" }}
-      >
-        <div
-          ref={stripRef}
-          className="flex gap-3 items-center h-full"
-          style={{ width: "max-content", willChange: "transform" }}
-        >
-          {tickerItems.map((item, idx) => (
-            <div
-              key={`${item.text}-${idx}`}
-              className="flex items-center gap-2 px-5 shrink-0"
-            >
-              <div
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ background: item.bg }}
-              />
-              <p className="text-white/85 font-medium text-sm whitespace-nowrap">
-                {item.text}
-              </p>
-              <span className="text-white/40 text-xs">·</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Custom Sectors Section ───────────────────────────────────────────────────
+// ─── Custom Sectors types ───────────────────────────────────────────────────────────────────────
 type CustomSector = {
   id: string;
   name: string;
@@ -491,7 +319,7 @@ function CustomSectorsSection() {
   if (sectors.length === 0) return null;
 
   return (
-    <section className="py-24 bg-background" data-ocid="custom.sectors.section">
+    <section className="py-24 bg-obsidian-2" data-ocid="custom.sectors.section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <SectionHeading
@@ -546,7 +374,7 @@ function CustomSectorsSection() {
   );
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
+// ─── Header ──────────────────────────────────────────────────────────────────────────────────
 function Header({
   cartCount,
   onNavigate,
@@ -554,16 +382,9 @@ function Header({
   cartCount: number;
   onNavigate: (path: string) => void;
 }) {
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { identity, clear, isLoggingIn } = useInternetIdentity();
+  const { identity, clear } = useInternetIdentity();
   const { data: isAdmin } = useIsAdmin();
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -571,132 +392,62 @@ function Header({
   };
 
   const navLinks = [
-    { label: "Home", id: "home", ocid: "nav.home.link" },
-    { label: "Shop", id: "shop", ocid: "nav.shop.link" },
-    { label: "Play & Win", id: "play-win", ocid: "nav.plawin.link" },
-    { label: "Offers", id: "offers", ocid: "nav.offers.link" },
-    { label: "Contact", id: "contact", ocid: "nav.contact.link" },
+    { label: "Home", id: "home" },
+    { label: "Shop", id: "shop" },
+    { label: "Play & Win", id: "play-win" },
+    { label: "Offers", id: "offers" },
+    { label: "Contact", id: "contact" },
   ];
-
-  const handleLogout = () => {
-    clear();
-    toast.success("Signed out successfully.");
-    setMenuOpen(false);
-  };
 
   return (
     <>
       <header
         data-ocid="header.section"
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-          scrolled
-            ? "bg-background/90 backdrop-blur-xl border-b border-gold-dim shadow-sm"
-            : "bg-transparent"
-        }`}
+        className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-border shadow-xs"
       >
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Menu button */}
+        <div className="flex items-center justify-between px-4 h-14">
+          {/* Hamburger */}
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
-            className="text-gold hover:text-gold-bright transition-colors p-2 rounded-lg hover:bg-obsidian-2 md:hidden"
+            className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors"
             data-ocid="header.menu_button"
             aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Desktop nav left */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.slice(0, 2).map((link) => (
-              <button
-                type="button"
-                key={link.id}
-                onClick={() => scrollTo(link.id)}
-                className="text-sm text-muted-foreground hover:text-gold transition-colors font-medium"
-                data-ocid={link.ocid}
-              >
-                {link.label}
-              </button>
-            ))}
-          </nav>
+          {/* Centered ALVRA logo */}
+          <button
+            type="button"
+            onClick={() => onNavigate("/")}
+            className="absolute left-1/2 -translate-x-1/2 font-luxury font-black text-2xl tracking-[0.3em] text-gold hover:opacity-80 transition-opacity"
+            data-ocid="header.logo.link"
+          >
+            ALVRA
+          </button>
 
-          {/* Center logo */}
-          <div className="absolute left-1/2 -translate-x-1/2">
+          {/* Right: search + cart */}
+          <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => onNavigate("/")}
-              className="font-luxury text-2xl md:text-3xl font-bold text-gold gold-glow tracking-[0.3em]"
-              data-ocid="header.logo.link"
+              className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors"
+              aria-label="Search"
+              data-ocid="header.search.button"
             >
-              ALVRA
+              <Search className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Desktop nav right + auth + cart */}
-          <div className="flex items-center gap-3">
-            <nav className="hidden md:flex items-center gap-6">
-              {navLinks.slice(2).map((link) => (
-                <button
-                  type="button"
-                  key={link.id}
-                  onClick={() => scrollTo(link.id)}
-                  className="text-sm text-muted-foreground hover:text-gold transition-colors font-medium"
-                  data-ocid={link.ocid}
-                >
-                  {link.label}
-                </button>
-              ))}
-            </nav>
-
-            {/* Auth buttons */}
-            {identity ? (
-              <div className="hidden md:flex items-center gap-2">
-                {isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("/admin")}
-                    className="flex items-center gap-1.5 text-xs text-gold hover:text-gold-bright transition-colors px-3 py-1.5 rounded-lg border border-gold-dim hover:bg-gold/10"
-                    data-ocid="header.admin.link"
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                    Admin
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-gold transition-colors px-3 py-1.5 rounded-lg hover:bg-obsidian-2"
-                  data-ocid="header.logout.button"
-                  disabled={isLoggingIn}
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onNavigate("/login")}
-                className="hidden md:flex items-center gap-1.5 text-xs text-gold hover:text-gold-bright transition-colors px-3 py-1.5 rounded-lg border border-gold-dim hover:bg-gold/10"
-                data-ocid="header.login.link"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Sign In
-              </button>
-            )}
-
             <button
               type="button"
               onClick={() => onNavigate("/cart")}
-              className="relative text-gold hover:text-gold-bright transition-colors p-2 rounded-lg hover:bg-obsidian-2"
-              data-ocid="header.cart_button"
-              aria-label="Shopping cart"
+              className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors relative"
+              aria-label="Cart"
+              data-ocid="header.cart.button"
             >
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gold text-obsidian text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cartCount > 9 ? "9+" : cartCount}
                 </span>
               )}
             </button>
@@ -704,105 +455,95 @@ function Header({
         </div>
       </header>
 
-      {/* Mobile menu drawer */}
+      {/* Mobile drawer */}
       <AnimatePresence>
         {menuOpen && (
           <>
             <motion.div
+              key="overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-foreground/20"
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
               onClick={() => setMenuOpen(false)}
             />
             <motion.div
+              key="drawer"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 bottom-0 z-50 w-72 bg-background border-r border-gold-dim p-6 flex flex-col shadow-xl"
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed left-0 top-0 bottom-0 z-50 w-72 bg-white shadow-xl flex flex-col"
             >
-              <div className="flex items-center justify-between mb-8">
-                <span className="font-luxury text-xl text-gold tracking-widest">
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <span className="font-luxury font-black text-xl tracking-[0.3em] text-gold">
                   ALVRA
                 </span>
                 <button
                   type="button"
                   onClick={() => setMenuOpen(false)}
-                  className="text-muted-foreground hover:text-gold transition-colors"
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  data-ocid="header.menu.close_button"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <nav className="flex flex-col gap-1">
+              <nav className="flex-1 p-4 space-y-1">
                 {navLinks.map((link) => (
                   <button
                     type="button"
                     key={link.id}
                     onClick={() => scrollTo(link.id)}
-                    className="text-left px-4 py-3 text-foreground hover:text-gold hover:bg-obsidian-2 rounded-lg transition-all font-medium"
-                    data-ocid={link.ocid}
+                    className="w-full text-left px-4 py-3 rounded-xl text-foreground font-semibold hover:bg-muted hover:text-gold transition-colors"
+                    data-ocid={`nav.${link.id}.link`}
                   >
                     {link.label}
                   </button>
                 ))}
-              </nav>
-
-              {/* Mobile auth */}
-              <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2">
-                {identity ? (
-                  <>
-                    <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground text-sm">
-                      <User className="w-4 h-4 text-gold" />
-                      <span className="text-gold text-xs truncate">
-                        {identity.getPrincipal().toString().slice(0, 20)}…
-                      </span>
-                    </div>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          onNavigate("/admin");
-                        }}
-                        className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-2 rounded-lg transition-all text-sm"
-                        data-ocid="header.mobile_admin.link"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Admin Panel
-                      </button>
-                    )}
+                <div className="pt-3 border-t border-border mt-3">
+                  {isAdmin && (
                     <button
                       type="button"
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 px-4 py-3 text-muted-foreground hover:text-gold hover:bg-obsidian-2 rounded-lg transition-all text-sm"
-                      data-ocid="header.mobile_logout.button"
+                      onClick={() => {
+                        onNavigate("/admin");
+                        setMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-xl text-gold font-semibold hover:bg-muted transition-colors flex items-center gap-2"
+                      data-ocid="nav.admin.link"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Admin Panel
+                    </button>
+                  )}
+                  {identity ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clear();
+                        setMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-xl text-destructive font-semibold hover:bg-destructive/10 transition-colors flex items-center gap-2"
+                      data-ocid="nav.logout.button"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign Out
                     </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onNavigate("/login");
-                    }}
-                    className="flex items-center gap-2 px-4 py-3 text-gold hover:bg-obsidian-2 rounded-lg transition-all text-sm font-medium"
-                    data-ocid="header.mobile_login.link"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    Sign In
-                  </button>
-                )}
-              </div>
-
-              <div className="mt-auto pt-8 border-t border-border">
-                <p className="text-xs text-muted-foreground text-center">
-                  Premium Fragrances
-                </p>
-              </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onNavigate("/login");
+                        setMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-xl text-foreground font-semibold hover:bg-muted transition-colors flex items-center gap-2"
+                      data-ocid="nav.login.link"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      Sign In
+                    </button>
+                  )}
+                </div>
+              </nav>
             </motion.div>
           </>
         )}
@@ -811,221 +552,545 @@ function Header({
   );
 }
 
-// ─── Hook: reads from contentStore, re-renders whenever admin saves ───────────
+// ─── useContent hook ──────────────────────────────────────────────────────────────────────
 function useContent() {
   const [cm, setCm] = useState<Record<string, string>>(() => readAll());
-
   useEffect(() => {
-    // Refresh on any admin save (same tab or another tab)
     const refresh = () => setCm(readAll());
     const unsub = onContentUpdate(refresh);
     return unsub;
   }, []);
-
   return cm;
 }
 
-// ─── Hero Section ─────────────────────────────────────────────────────────────
-function HeroSection() {
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
-  const cm = useContent();
-  const heroTitle = cm["hero.title"] || "BE UNFORGETTABLE";
-  const heroSubtitle =
-    cm["hero.subtitle"] ||
-    "Premium perfumes designed for Formal & Party moments.";
-  const heroImage =
-    cm["hero.image"] || "/assets/generated/hero-perfume.dim_800x900.png";
+// ─── Promo Ticker (thin scrolling strip) ─────────────────────────────────────────────────
+function PromoTicker() {
+  const items = [...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS];
+  return (
+    <div
+      data-ocid="ticker.section"
+      className="w-full overflow-hidden border-b border-border"
+      style={{ background: "oklch(0.58 0.16 186)" }}
+    >
+      <style>{`
+        @keyframes ticker-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.333%); }
+        }
+        .ticker-track {
+          display: flex;
+          width: max-content;
+          animation: ticker-scroll 22s linear infinite;
+        }
+        .ticker-track:hover { animation-play-state: paused; }
+      `}</style>
+      <div className="ticker-track py-2">
+        {items.map((item, i) => (
+          <span
+            key={`${item.text}-${i}`}
+            className="inline-flex items-center gap-2 px-6 text-white text-xs font-semibold whitespace-nowrap"
+          >
+            <span>{item.icon}</span>
+            <span>{item.text}</span>
+            <span className="opacity-40 mx-2">•</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Hero Carousel ──────────────────────────────────────────────────────────────────────
+const CAROUSEL_SLIDES = [
+  {
+    id: 1,
+    image: "/assets/generated/hero-carousel-1.dim_800x600.jpg",
+    title: "Floral Elegance",
+    subtitle: "New Launch 2025",
+    tag: "Bestseller",
+    gradient: "from-amber-50/90 via-transparent to-transparent",
+  },
+  {
+    id: 2,
+    image: "/assets/generated/hero-carousel-2.dim_800x600.jpg",
+    title: "Men's Signature",
+    subtitle: "Formal & Party",
+    tag: "Top Pick",
+    gradient: "from-slate-900/80 via-transparent to-transparent",
+  },
+  {
+    id: 3,
+    image: "/assets/generated/hero-carousel-3.dim_800x600.jpg",
+    title: "Women's Collection",
+    subtitle: "Rose & Bloom",
+    tag: "New Arrival",
+    gradient: "from-pink-900/70 via-transparent to-transparent",
+  },
+  {
+    id: 4,
+    image: "/assets/generated/men-party.dim_400x500.png",
+    title: "Party Edition",
+    subtitle: "Night Fragrance",
+    tag: "Limited",
+    gradient: "from-purple-900/80 via-transparent to-transparent",
+  },
+];
+
+function HeroCarousel({ onNavigate }: { onNavigate: (path: string) => void }) {
+  const [active, setActive] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!autoPlay) return;
+    timerRef.current = setTimeout(
+      () => setActive((p) => (p + 1) % CAROUSEL_SLIDES.length),
+      3500,
+    );
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [autoPlay]);
+
+  const slide = CAROUSEL_SLIDES[active];
 
   return (
     <section
       id="home"
       data-ocid="hero.section"
-      className="relative min-h-screen flex items-center overflow-hidden bg-background"
+      className="relative bg-muted overflow-hidden"
     >
-      {/* Background mesh */}
+      {/* Main image */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 80% at 70% 50%, oklch(0.85 0.06 20 / 0.3) 0%, transparent 60%), radial-gradient(ellipse 60% 60% at 20% 80%, oklch(0.88 0.04 145 / 0.2) 0%, transparent 50%)",
-        }}
-      />
-      {/* Grain */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-30"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E\")",
-        }}
-      />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen py-24">
-          {/* Left content */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
-              <Badge className="bg-obsidian-2 text-gold border-gold-dim mb-6 text-xs tracking-widest px-3 py-1">
-                ✦ PREMIUM COLLECTION 2025
-              </Badge>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                delay: 0.35,
-                duration: 0.8,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="font-luxury text-6xl sm:text-7xl lg:text-8xl font-bold leading-none mb-6"
-            >
-              <span className="text-gold gold-glow block">{heroTitle}</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.7 }}
-              className="text-muted-foreground text-lg md:text-xl mb-10 max-w-md leading-relaxed"
-            >
-              {heroSubtitle}
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.65, duration: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4"
-            >
-              <Button
-                size="lg"
-                onClick={() => scrollTo("shop")}
-                className="bg-gold text-obsidian font-bold text-base px-8 py-6 hover:bg-gold-bright transition-all hover:scale-105 shadow-gold"
-                data-ocid="hero.shop_now.primary_button"
-              >
-                Shop Now
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => scrollTo("play-win")}
-                className="border-gold text-gold hover:bg-gold hover:text-obsidian font-bold text-base px-8 py-6 transition-all hover:scale-105"
-                data-ocid="hero.play_win.secondary_button"
-              >
-                🎮 Play & Win
-              </Button>
-            </motion.div>
-
-            {/* Trust badges */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9 }}
-              className="flex items-center gap-6 mt-10 text-sm text-muted-foreground"
-            >
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-gold fill-gold" />
-                <span>4.9/5 Rating</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-gold" />
-                <span>Free Shipping</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-gold" />
-                <span>Premium Quality</span>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Right — hero image */}
+        className="relative w-full"
+        style={{ aspectRatio: "4/3", maxHeight: 420 }}
+      >
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, x: 60, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ delay: 0.4, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex justify-center lg:justify-end"
+            key={slide.id}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45 }}
+            className="absolute inset-0"
           >
-            <div className="relative">
-              {/* Glow rings */}
-              <div
-                className="absolute inset-0 rounded-full blur-3xl"
-                style={{
-                  background:
-                    "radial-gradient(circle, oklch(0.65 0.13 20 / 0.15) 0%, transparent 70%)",
-                  transform: "scale(1.3)",
-                }}
-              />
-              <div className="animate-float relative z-10">
-                <img
-                  src={heroImage}
-                  alt="ALVRA Premium Perfume"
-                  className="w-72 sm:w-96 lg:w-[420px] drop-shadow-2xl"
-                  style={{
-                    filter: "drop-shadow(0 0 40px oklch(0.65 0.13 20 / 0.25))",
-                  }}
-                />
-              </div>
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className="w-full h-full object-cover"
+            />
+            {/* Overlay gradient + text */}
+            <div
+              className={`absolute inset-0 bg-gradient-to-r ${slide.gradient}`}
+            />
+            <div className="absolute bottom-0 left-0 p-4 sm:p-6">
+              <span className="inline-block bg-gold text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-2 uppercase tracking-wide">
+                {slide.tag}
+              </span>
+              <h2 className="font-display font-black text-white text-xl sm:text-3xl leading-tight drop-shadow-lg">
+                {slide.title}
+              </h2>
+              <p className="text-white/80 text-sm mt-0.5">{slide.subtitle}</p>
             </div>
           </motion.div>
+        </AnimatePresence>
+
+        {/* Arrows */}
+        <button
+          type="button"
+          onClick={() => {
+            setAutoPlay(false);
+            setActive(
+              (p) => (p - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length,
+            );
+          }}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-colors z-10"
+          data-ocid="carousel.pagination_prev"
+        >
+          <ChevronDown className="w-4 h-4 rotate-90 text-foreground" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setAutoPlay(false);
+            setActive((p) => (p + 1) % CAROUSEL_SLIDES.length);
+          }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-colors z-10"
+          data-ocid="carousel.pagination_next"
+        >
+          <ChevronDown className="w-4 h-4 -rotate-90 text-foreground" />
+        </button>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-3 right-4 flex items-center gap-1.5 z-10">
+          {CAROUSEL_SLIDES.map((s, i) => (
+            <button
+              key={`dot-${s.id}`}
+              type="button"
+              onClick={() => {
+                setAutoPlay(false);
+                setActive(i);
+              }}
+              data-ocid={`carousel.item.${i + 1}`}
+              className={`rounded-full transition-all duration-300 ${
+                i === active ? "w-5 h-2 bg-white" : "w-2 h-2 bg-white/50"
+              }`}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground"
-      >
-        <span className="text-xs tracking-widest uppercase">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}
+      {/* Thumbnail strip */}
+      <div className="flex gap-2 px-3 py-2.5 bg-white overflow-x-auto scrollbar-hide border-b border-border">
+        {CAROUSEL_SLIDES.map((s, i) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => {
+              setAutoPlay(false);
+              setActive(i);
+            }}
+            data-ocid={"carousel.tab"}
+            className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+              i === active ? "border-gold" : "border-transparent opacity-60"
+            }`}
+            style={{ width: 60, height: 60 }}
+          >
+            <img
+              src={s.image}
+              alt={s.title}
+              className="w-full h-full object-cover"
+            />
+          </button>
+        ))}
+
+        {/* CTA button in thumbnail row */}
+        <button
+          type="button"
+          onClick={() => onNavigate("/cart")}
+          className="flex-shrink-0 ml-auto flex items-center gap-1.5 bg-gold text-white text-xs font-bold px-4 rounded-xl hover:bg-gold-bright transition-colors whitespace-nowrap"
+          data-ocid="hero.primary_button"
         >
-          <ChevronDown className="w-4 h-4" />
-        </motion.div>
-      </motion.div>
+          <ShoppingCart className="w-3.5 h-3.5" />
+          Shop Now
+        </button>
+      </div>
     </section>
   );
 }
 
-// ─── Dino Game Section ────────────────────────────────────────────────────────
+// ─── Category Row ─────────────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  "All",
+  "Floral",
+  "Woody",
+  "Oriental",
+  "Fresh",
+  "Formal",
+  "Party",
+];
+
+function CategoryRow({
+  active,
+  onChange,
+}: {
+  active: string;
+  onChange: (cat: string) => void;
+}) {
+  return (
+    <div className="bg-white border-b border-border sticky top-14 z-30 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => onChange(cat)}
+            data-ocid="products.filter.tab"
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+              cat === active
+                ? "bg-gold text-white shadow-gold"
+                : "bg-muted text-muted-foreground hover:bg-secondary"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Products Section (MEN / WOMEN split grid) ────────────────────────────────────────────────────────
+function ProductsSection({
+  onAddToCart,
+}: {
+  onAddToCart: (id: bigint) => void;
+}) {
+  const cm = useContent();
+  const allProducts = getProducts(cm);
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const menProducts = allProducts.filter(
+    (p) =>
+      p.name.toLowerCase().includes("men") &&
+      !p.name.toLowerCase().includes("women"),
+  );
+  const womenProducts = allProducts.filter((p) =>
+    p.name.toLowerCase().includes("women"),
+  );
+
+  const filterProducts = (products: typeof allProducts) => {
+    if (activeCategory === "All") return products;
+    return products.filter(
+      (p) =>
+        p.category === activeCategory ||
+        p.name.toLowerCase().includes(activeCategory.toLowerCase()),
+    );
+  };
+
+  const filteredMen = filterProducts(menProducts);
+  const filteredWomen = filterProducts(womenProducts);
+  const otherProducts = allProducts.filter(
+    (p) =>
+      !p.name.toLowerCase().includes("men") &&
+      !p.name.toLowerCase().includes("women"),
+  );
+  const filteredOther = filterProducts(otherProducts);
+
+  return (
+    <div id="shop" data-ocid="products.section">
+      <CategoryRow active={activeCategory} onChange={setActiveCategory} />
+
+      <section className="bg-background pb-8 pt-4">
+        <div className="max-w-lg mx-auto px-3">
+          {/* MEN Section */}
+          {filteredMen.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3 px-1">
+                <div className="h-px flex-1 bg-border" />
+                <h2 className="font-display font-black text-base tracking-[0.2em] text-foreground uppercase">
+                  MEN
+                </h2>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {filteredMen.map((product, i) => (
+                  <MiniProductCard
+                    key={product.id.toString()}
+                    product={product}
+                    index={i}
+                    onAddToCart={onAddToCart}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* WOMEN Section */}
+          {filteredWomen.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3 px-1">
+                <div className="h-px flex-1 bg-border" />
+                <h2 className="font-display font-black text-base tracking-[0.2em] text-foreground uppercase">
+                  WOMEN
+                </h2>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {filteredWomen.map((product, i) => (
+                  <MiniProductCard
+                    key={product.id.toString()}
+                    product={product}
+                    index={i}
+                    onAddToCart={onAddToCart}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Other / unfiltered */}
+          {filteredOther.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3 px-1">
+                <div className="h-px flex-1 bg-border" />
+                <h2 className="font-display font-black text-base tracking-[0.2em] text-foreground uppercase">
+                  FEATURED
+                </h2>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {filteredOther.map((product, i) => (
+                  <MiniProductCard
+                    key={product.id.toString()}
+                    product={product}
+                    index={i}
+                    onAddToCart={onAddToCart}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filteredMen.length === 0 &&
+            filteredWomen.length === 0 &&
+            filteredOther.length === 0 && (
+              <div
+                data-ocid="products.empty_state"
+                className="py-16 text-center text-muted-foreground"
+              >
+                <p className="text-lg font-semibold mb-1">
+                  No products in this category
+                </p>
+                <p className="text-sm">Try a different filter</p>
+              </div>
+            )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ─── Mini Product Card (compact for MEN/WOMEN grid) ──────────────────────────────────────
+function MiniProductCard({
+  product,
+  index,
+  onAddToCart,
+}: {
+  product: ReturnType<typeof getProducts>[0];
+  index: number;
+  onAddToCart: (id: bigint) => void;
+}) {
+  const ocidIndex = index + 1;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-30px" }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
+      data-ocid={`product.card.${ocidIndex}`}
+      className="bg-white rounded-xl overflow-hidden border border-border shadow-xs hover:shadow-md transition-shadow group"
+    >
+      {/* Image */}
+      <div className="relative overflow-hidden bg-muted aspect-square">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"
+        />
+        <div className="absolute top-1.5 left-1.5">
+          <span
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
+            style={{ background: "oklch(0.58 0.16 186)" }}
+          >
+            {product.tag}
+          </span>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="p-2.5">
+        <h3 className="font-bold text-foreground text-xs leading-tight mb-0.5 truncate">
+          {product.name}
+        </h3>
+        <p className="text-muted-foreground text-[10px] mb-1.5 truncate">
+          {product.description}
+        </p>
+        {/* Stars */}
+        <div className="flex items-center gap-0.5 mb-2">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <Star
+              key={s}
+              className="w-2.5 h-2.5 text-amber-400 fill-amber-400"
+            />
+          ))}
+          <span className="text-[9px] text-muted-foreground ml-1">(128)</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="font-luxury font-black text-gold text-sm">
+            {product.price}
+          </span>
+          <button
+            type="button"
+            onClick={() => onAddToCart(product.id)}
+            data-ocid={`product.buy.button.${ocidIndex}`}
+            className="text-[9px] font-bold px-2 py-1 rounded-full bg-gold text-white hover:bg-gold-bright transition-colors active:scale-95"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Game Section ──────────────────────────────────────────────────────────────────────────────────
 function GameSection() {
   return (
     <section
       id="play-win"
       data-ocid="game.section"
-      className="py-0 bg-obsidian-2 relative overflow-hidden"
+      className="py-24 relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, oklch(0.36 0.13 205) 0%, oklch(0.48 0.16 188) 50%, oklch(0.42 0.15 175) 100%)",
+      }}
     >
+      {/* Background circles */}
       <div
-        className="absolute pointer-events-none opacity-40"
+        className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none opacity-20"
         style={{
-          top: "300px",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage:
-            "radial-gradient(circle at 20% 50%, oklch(0.65 0.13 20 / 0.1) 0%, transparent 50%)",
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
+          transform: "translate(30%, -30%)",
         }}
       />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center py-24">
+      <div
+        className="absolute bottom-0 left-0 w-64 h-64 rounded-full pointer-events-none opacity-15"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)",
+          transform: "translate(-30%, 30%)",
+        }}
+      />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
         <FadeIn>
-          <SectionHeading
-            title="🎮 Play & Win Discount"
-            subtitle="Play the Dino challenge and unlock exclusive rewards on your next purchase."
-          />
+          <div className="mb-4">
+            <span
+              className="text-xs font-bold tracking-[0.25em] uppercase px-4 py-2 rounded-full"
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                color: "rgba(255,255,255,0.9)",
+                border: "1px solid rgba(255,255,255,0.2)",
+              }}
+            >
+              🎮 Play & Win
+            </span>
+          </div>
+          <h2
+            className="font-display font-black text-white mb-4"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
+          >
+            Win Free Perfume
+          </h2>
+          <p className="text-white/75 text-lg mb-10 max-w-lg mx-auto">
+            Play the Dino challenge and unlock exclusive discount coupons on
+            your next purchase.
+          </p>
         </FadeIn>
 
         <FadeIn delay={0.2}>
-          <div className="bg-card border border-gold-dim rounded-2xl p-8 md:p-12 gold-glow-box">
-            {/* Reward tiers preview */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8 text-sm">
+          <div
+            className="rounded-3xl p-8 md:p-10"
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            {/* Reward tiers */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
               {[
                 { score: "500+", reward: "₹20 OFF", icon: "🎯" },
                 { score: "1000+", reward: "₹50 OFF", icon: "🏆" },
@@ -1036,11 +1101,17 @@ function GameSection() {
               ].map((tier) => (
                 <div
                   key={tier.score}
-                  className="bg-obsidian-2 border border-border rounded-lg px-3 py-2 text-center"
+                  className="rounded-xl px-3 py-3 text-center"
+                  style={{
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                  }}
                 >
-                  <div className="text-base mb-1">{tier.icon}</div>
-                  <div className="text-gold font-bold">{tier.score}</div>
-                  <div className="text-muted-foreground text-xs">
+                  <div className="text-xl mb-1">{tier.icon}</div>
+                  <div className="text-white font-bold text-sm">
+                    {tier.score}
+                  </div>
+                  <div className="text-white/70 text-xs mt-0.5">
                     {tier.reward}
                   </div>
                 </div>
@@ -1057,109 +1128,7 @@ function GameSection() {
   );
 }
 
-// ─── Product Card ─────────────────────────────────────────────────────────────
-function ProductCard({
-  product,
-  index,
-  onAddToCart,
-}: {
-  product: ReturnType<typeof getProducts>[0];
-  index: number;
-  onAddToCart: (id: bigint) => void;
-}) {
-  const ocidIndex = index + 1;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      data-ocid={`product.card.${ocidIndex}`}
-      className="group bg-card border border-border rounded-2xl overflow-hidden card-hover"
-    >
-      <div className="relative overflow-hidden bg-obsidian-2 aspect-[4/5]">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-obsidian/60 to-transparent" />
-        <Badge className="absolute top-3 right-3 bg-gold text-obsidian text-xs font-bold border-0">
-          {product.tag}
-        </Badge>
-        <div className="absolute bottom-3 left-3 right-3">
-          <Badge
-            variant="outline"
-            className="border-gold-dim text-gold bg-obsidian/80 text-xs"
-          >
-            {product.category}
-          </Badge>
-        </div>
-      </div>
-
-      <div className="p-5">
-        <h3 className="font-display text-xl font-bold text-foreground mb-1">
-          {product.name}
-        </h3>
-        <p className="text-muted-foreground text-sm mb-4">
-          {product.description}
-        </p>
-        <div className="flex items-center justify-between">
-          <span className="font-luxury text-2xl font-bold text-gold">
-            {product.price}
-          </span>
-          <Button
-            onClick={() => onAddToCart(product.id)}
-            className="bg-gold text-obsidian font-bold hover:bg-gold-bright transition-all hover:scale-105 text-sm"
-            data-ocid={`product.buy.button.${ocidIndex}`}
-          >
-            Add to Cart
-          </Button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── Products Section ─────────────────────────────────────────────────────────
-function ProductsSection({
-  onAddToCart,
-}: {
-  onAddToCart: (id: bigint) => void;
-}) {
-  const cm = useContent();
-  const products = getProducts(cm);
-  return (
-    <section
-      id="shop"
-      data-ocid="products.section"
-      className="py-24 bg-background"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn>
-          <SectionHeading
-            title="Our Collection"
-            subtitle="Four signature fragrances crafted for every occasion."
-          />
-        </FadeIn>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product, index) => (
-            <ProductCard
-              key={product.id.toString()}
-              product={product}
-              index={index}
-              onAddToCart={onAddToCart}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Launch Offer Section ─────────────────────────────────────────────────────
+// ─── Launch Offer Section ───────────────────────────────────────────────────────────────────────
 function LaunchOfferSection() {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -1183,19 +1152,24 @@ function LaunchOfferSection() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 60% 70% at 50% 50%, oklch(0.65 0.13 20 / 0.06) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 70% at 50% 50%, oklch(0.84 0.08 186 / 0.15) 0%, transparent 70%)",
         }}
       />
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <FadeIn>
-          <div className="bg-card border-2 border-gold rounded-3xl p-8 md:p-12 shadow-gold-lg relative overflow-hidden">
-            {/* Corner accents */}
-            <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-gold rounded-tl-3xl" />
-            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-gold rounded-br-3xl" />
+          <div className="bg-white border-2 border-gold rounded-3xl p-8 md:p-12 shadow-gold-lg relative overflow-hidden">
+            {/* Top accent line */}
+            <div
+              className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
+              style={{
+                background:
+                  "linear-gradient(90deg, oklch(0.42 0.16 186), oklch(0.60 0.18 170), oklch(0.42 0.16 186))",
+              }}
+            />
 
             <div className="text-center mb-8">
               <div className="text-5xl mb-4">🔥</div>
-              <h2 className="font-luxury text-4xl md:text-5xl font-bold text-gold gold-glow mb-3">
+              <h2 className="font-luxury text-4xl md:text-5xl font-black text-gold mb-3">
                 Launch Offer
               </h2>
               <p className="text-muted-foreground text-lg mb-2">
@@ -1228,7 +1202,7 @@ function LaunchOfferSection() {
               <Button
                 size="lg"
                 onClick={() => scrollTo("shop")}
-                className="bg-gold text-obsidian font-bold text-lg px-12 py-6 hover:bg-gold-bright transition-all hover:scale-105 shadow-gold animate-pulse-gold"
+                className="bg-gold text-white font-bold text-lg px-12 py-6 hover:bg-gold-bright transition-all hover:scale-105 shadow-gold animate-pulse-gold rounded-full"
                 data-ocid="offer.grab.primary_button"
               >
                 Grab the Offer →
@@ -1241,7 +1215,7 @@ function LaunchOfferSection() {
   );
 }
 
-// ─── EMI Section ──────────────────────────────────────────────────────────────
+// ─── EMI Section ─────────────────────────────────────────────────────────────────────────────────────
 function EMISection() {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -1258,7 +1232,7 @@ function EMISection() {
         </FadeIn>
 
         <FadeIn delay={0.15}>
-          <div className="bg-card border border-gold-dim rounded-2xl p-8 md:p-10 gold-glow-box mb-8">
+          <div className="bg-white border border-gold-dim rounded-2xl p-8 md:p-10 gold-glow-box mb-8 shadow-sm">
             <div className="grid sm:grid-cols-3 gap-4 mb-6">
               <div className="bg-obsidian-2 rounded-xl p-5 border border-gold">
                 <div className="text-3xl font-bold text-gold font-luxury mb-1">
@@ -1292,7 +1266,7 @@ function EMISection() {
               ].map((row) => (
                 <div
                   key={row.week}
-                  className="flex items-center justify-between px-4 py-3 rounded-lg bg-obsidian-2 border border-border"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-obsidian-2 border border-border"
                 >
                   <div className="flex items-center gap-3">
                     <Clock className="w-4 h-4 text-gold" />
@@ -1313,7 +1287,7 @@ function EMISection() {
             <Button
               size="lg"
               onClick={() => scrollTo("shop")}
-              className="w-full bg-gold text-obsidian font-bold py-5 hover:bg-gold-bright transition-all hover:scale-[1.02] text-base"
+              className="w-full bg-gold text-white font-bold py-5 hover:bg-gold-bright transition-all hover:scale-[1.02] text-base rounded-full"
               data-ocid="emi.get_started.primary_button"
             >
               Get Started — Pay ₹199 Now
@@ -1325,7 +1299,7 @@ function EMISection() {
   );
 }
 
-// ─── Why Choose Section ───────────────────────────────────────────────────────
+// ─── Why Choose Section ────────────────────────────────────────────────────────────────────────────────
 function WhySection() {
   const cm = useContent();
   const ICON_MAP = [Clock, Leaf, Sparkles, Heart];
@@ -1366,9 +1340,9 @@ function WhySection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, i) => (
             <FadeIn key={feature.title} delay={i * 0.1}>
-              <div className="group bg-card border border-border rounded-2xl p-6 card-hover text-center h-full">
-                <div className="w-12 h-12 rounded-full bg-obsidian-2 border border-gold-dim flex items-center justify-center mx-auto mb-4 group-hover:border-gold transition-colors">
-                  <feature.icon className="w-6 h-6 text-gold" />
+              <div className="group bg-white border border-border rounded-2xl p-6 card-hover text-center h-full shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-obsidian-2 border border-gold-dim flex items-center justify-center mx-auto mb-4 group-hover:bg-gold group-hover:border-gold transition-all">
+                  <feature.icon className="w-6 h-6 text-gold group-hover:text-white transition-colors" />
                 </div>
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <CheckCircle2 className="w-4 h-4 text-gold" />
@@ -1386,7 +1360,7 @@ function WhySection() {
   );
 }
 
-// ─── Reviews Section ──────────────────────────────────────────────────────────
+// ─── Reviews Section ─────────────────────────────────────────────────────────────────────────────────
 function ReviewsSection() {
   return (
     <section data-ocid="reviews.section" className="py-24 bg-background">
@@ -1403,25 +1377,26 @@ function ReviewsSection() {
             <FadeIn key={review.name} delay={i * 0.1}>
               <div
                 data-ocid={`review.card.${i + 1}`}
-                className="bg-card border border-border rounded-2xl p-6 card-hover relative"
+                className="bg-white border border-border rounded-2xl p-6 card-hover relative shadow-sm"
               >
-                {/* Quote mark */}
+                {/* Top teal accent */}
                 <div
-                  className="absolute top-4 right-5 text-6xl font-display text-gold opacity-10 leading-none select-none"
-                  aria-hidden="true"
-                >
-                  "
-                </div>
+                  className="absolute top-0 left-6 right-6 h-0.5 rounded-b-full"
+                  style={{ background: "oklch(0.58 0.16 186)" }}
+                />
 
                 {/* Stars */}
-                <div className="flex gap-1 mb-4">
+                <div className="flex gap-1 mb-4 mt-2">
                   {["s1", "s2", "s3", "s4", "s5"].map((s) => (
-                    <Star key={s} className="w-4 h-4 text-gold fill-gold" />
+                    <Star
+                      key={s}
+                      className="w-4 h-4 text-amber-400 fill-amber-400"
+                    />
                   ))}
                 </div>
 
                 <p className="text-foreground leading-relaxed mb-5 relative z-10">
-                  "{review.text}"
+                  “{review.text}”
                 </p>
 
                 <div className="flex items-center justify-between">
@@ -1449,15 +1424,15 @@ function ReviewsSection() {
   );
 }
 
-// ─── Instagram Section ────────────────────────────────────────────────────────
+// ─── Instagram Section ────────────────────────────────────────────────────────────────────────────────
 function InstagramSection() {
   const gradients = [
-    "from-rose-200/80 to-amber-100/80",
-    "from-pink-200/80 to-purple-100/80",
-    "from-sky-200/80 to-blue-100/80",
+    "from-teal-200/80 to-cyan-100/80",
     "from-emerald-200/80 to-teal-100/80",
-    "from-rose-300/70 to-pink-200/70",
-    "from-amber-200/80 to-yellow-100/80",
+    "from-sky-200/80 to-blue-100/80",
+    "from-teal-300/70 to-emerald-200/70",
+    "from-cyan-200/80 to-sky-100/80",
+    "from-emerald-300/70 to-green-200/70",
   ];
 
   return (
@@ -1477,16 +1452,10 @@ function InstagramSection() {
                 key={grad}
                 className={`aspect-square rounded-xl bg-gradient-to-br ${grad} border border-border relative overflow-hidden group cursor-pointer card-hover`}
               >
-                <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:opacity-60 transition-opacity">
-                  <Camera className="w-8 h-8 text-white" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:opacity-70 transition-opacity">
+                  <Camera className="w-8 h-8 text-teal-700" />
                 </div>
-                <div className="absolute inset-0 bg-obsidian/0 group-hover:bg-obsidian/20 transition-colors" />
-                <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex gap-2 text-white text-xs">
-                    <span>❤️ {Math.floor(Math.random() * 500) + 100}</span>
-                    <span>💬 {Math.floor(Math.random() * 50) + 10}</span>
-                  </div>
-                </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
               </div>
             ))}
           </div>
@@ -1500,7 +1469,7 @@ function InstagramSection() {
           >
             <Button
               size="lg"
-              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold px-8 py-5 transition-all hover:scale-105"
+              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white font-bold px-8 py-5 transition-all hover:scale-105 rounded-full"
               data-ocid="instagram.follow.primary_button"
             >
               <Instagram className="w-5 h-5 mr-2" />
@@ -1513,7 +1482,7 @@ function InstagramSection() {
   );
 }
 
-// ─── Footer ───────────────────────────────────────────────────────────────────
+// ─── Footer ──────────────────────────────────────────────────────────────────────────────────────
 function Footer() {
   const currentYear = new Date().getFullYear();
   const hostname =
@@ -1523,17 +1492,21 @@ function Footer() {
     <footer
       id="contact"
       data-ocid="footer.section"
-      className="bg-obsidian-2 border-t border-gold-dim py-16"
+      className="bg-white border-t border-border py-16"
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Brand */}
         <div className="text-center mb-12">
-          <h2 className="font-luxury text-4xl font-bold text-gold gold-glow tracking-[0.4em] mb-2">
+          <h2 className="font-luxury text-4xl font-black text-gold tracking-[0.4em] mb-2">
             ALVRA
           </h2>
-          <p className="text-muted-foreground text-sm tracking-widest">
-            PREMIUM FRAGRANCES
-          </p>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="h-0.5 w-12 bg-gold-dim" />
+            <p className="text-muted-foreground text-xs tracking-widest uppercase">
+              Premium Fragrances
+            </p>
+            <div className="h-0.5 w-12 bg-gold-dim" />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
@@ -1626,7 +1599,8 @@ function Footer() {
   );
 }
 
-// ─── Main Home Page ───────────────────────────────────────────────────────────
+// ─── Home Page ─────────────────────────────────────────────────────────────────────────────────────
+// ─── Home Page ─────────────────────────────────────────────────────────────────────────────────────
 function HomePage({
   onNavigate,
 }: {
@@ -1638,7 +1612,6 @@ function HomePage({
   const addToCart = useAddToCart();
   const initializeProducts = useInitializeProducts();
 
-  // Initialize products on mount
   const { mutate: initMutate } = initializeProducts;
   useEffect(() => {
     if (actor) {
@@ -1657,7 +1630,7 @@ function HomePage({
       });
       return;
     }
-    if (addToCart.isPending) return; // prevent double-click
+    if (addToCart.isPending) return;
     addToCart.mutate(
       { productId, quantity: 1n },
       {
@@ -1689,24 +1662,26 @@ function HomePage({
   return (
     <div className="bg-background min-h-screen">
       <Header cartCount={cartCount} onNavigate={onNavigate} />
-      <TopHeroBanner />
-      <main>
-        <HeroSection />
-        <GameSection />
-        <ProductsSection onAddToCart={handleAddToCart} />
-        <CustomSectorsSection />
-        <LaunchOfferSection />
-        <EMISection />
-        <WhySection />
-        <ReviewsSection />
-        <InstagramSection />
-      </main>
-      <Footer />
+      <div className="pt-14">
+        <PromoTicker />
+        <HeroCarousel onNavigate={onNavigate} />
+        <main>
+          <ProductsSection onAddToCart={handleAddToCart} />
+          <GameSection />
+          <CustomSectorsSection />
+          <LaunchOfferSection />
+          <EMISection />
+          <WhySection />
+          <ReviewsSection />
+          <InstagramSection />
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 }
 
-// ─── Root App with routing ────────────────────────────────────────────────────
+// ─── Root App with routing ───────────────────────────────────────────────────────────────────────────────
 export default function App() {
   const { path, navigate } = useRouter();
 
@@ -1716,9 +1691,9 @@ export default function App() {
         theme="light"
         toastOptions={{
           style: {
-            background: "oklch(0.99 0.005 75)",
-            border: "1px solid oklch(0.65 0.13 20 / 0.25)",
-            color: "oklch(0.22 0.015 50)",
+            background: "#fff",
+            border: "1px solid oklch(0.84 0.08 186 / 0.4)",
+            color: "oklch(0.15 0.025 255)",
           },
         }}
       />
