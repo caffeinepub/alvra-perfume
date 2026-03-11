@@ -13,9 +13,9 @@ interface Dino {
   velocityY: number;
   isOnGround: boolean;
   isDucking: boolean;
-  jumpCount: number; // 0 = no jump, 1 = single, 2 = double
+  jumpCount: number;
   legFrame: number;
-  invincible: number; // frames of invincibility remaining
+  invincible: number;
   flashTimer: number;
 }
 
@@ -24,7 +24,7 @@ interface Obstacle {
   y: number;
   width: number;
   height: number;
-  type: "cactus" | "bird" | "double_cactus" | "fast_cactus";
+  type: "perfume" | "coin" | "double_perfume" | "fast_coin";
   speedMultiplier: number;
   birdHeight?: "low" | "mid" | "high";
 }
@@ -68,7 +68,7 @@ interface GameState {
   bgOffset: number;
   starOffset: number;
   clouds: { x: number; y: number; w: number; speed: number }[];
-  showLifeLostText: number; // frames to show "1 UP LEFT!"
+  showLifeLostText: number;
 }
 
 // ─── Reward logic ─────────────────────────────────────────────────────────────
@@ -129,7 +129,6 @@ function drawBackground(
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // Stars layer 1 (slow)
   ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
   for (let i = 0; i < 40; i++) {
     const sx = ((i * 137 + starOffset * 0.3) % (canvasW + 20)) - 10;
@@ -138,7 +137,6 @@ function drawBackground(
     ctx.fillRect(sx, sy, size, size);
   }
 
-  // Stars layer 2 (fast)
   ctx.fillStyle = "rgba(200, 180, 255, 0.5)";
   for (let i = 0; i < 25; i++) {
     const sx = ((i * 211 + starOffset * 0.7) % (canvasW + 20)) - 10;
@@ -146,7 +144,6 @@ function drawBackground(
     ctx.fillRect(sx, sy, 1, 1);
   }
 
-  // Clouds / nebulas
   for (const cloud of clouds) {
     const alpha = 0.06 + (score / 20000) * 0.04;
     ctx.fillStyle = `rgba(150, 80, 255, ${alpha})`;
@@ -163,7 +160,6 @@ function drawGround(
   bgOffset: number,
   score: number,
 ) {
-  // Neon ground line with glow
   const glowColor =
     score < 3000 ? "#00ff88" : score < 6000 ? "#ffcc00" : "#ff3366";
 
@@ -177,7 +173,6 @@ function drawGround(
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Ground detail dots
   ctx.fillStyle = `${glowColor}33`;
   for (let i = 0; i < 12; i++) {
     const rx = ((i * 160 - bgOffset * 0.5) % (canvasW + 40)) - 20;
@@ -186,6 +181,7 @@ function drawGround(
   }
 }
 
+// ─── Elegant Runner Character (ALVRA brand person) ────────────────────────────
 function drawDino(
   ctx: CanvasRenderingContext2D,
   dino: Dino,
@@ -199,240 +195,446 @@ function drawDino(
   const h = dino.height;
   const frame = Math.floor(timestamp / 80) % 4;
 
-  // Dino glow aura
+  // Glow aura
   if (dino.invincible > 0) {
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 18;
     ctx.shadowColor = "#00ffff";
   } else {
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = "#ffaa00";
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "#0d9488";
   }
 
   if (dino.isDucking) {
-    // Ducked body - low and wide
-    ctx.fillStyle = "#e8a820";
+    // ── Crouching pose ──────────────────────────────────────────────────────
+    // Body / coat crouched
+    ctx.fillStyle = "#0d9488";
     ctx.beginPath();
-    ctx.roundRect(x, y + h * 0.45, w * 0.9, h * 0.55, 4);
+    ctx.roundRect(x + w * 0.15, y + h * 0.35, w * 0.65, h * 0.55, 4);
     ctx.fill();
 
     // Head
-    ctx.fillStyle = "#d4901a";
+    ctx.fillStyle = "#f5c5a3";
     ctx.beginPath();
-    ctx.roundRect(x + w * 0.4, y + h * 0.3, w * 0.6, h * 0.45, 3);
+    ctx.arc(x + w * 0.62, y + h * 0.22, w * 0.22, 0, Math.PI * 2);
     ctx.fill();
 
-    // Eye with glow
-    ctx.shadowBlur = 8;
+    // Hair bun
+    ctx.fillStyle = "#4a2c0a";
+    ctx.beginPath();
+    ctx.arc(x + w * 0.62, y + h * 0.06, w * 0.14, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.shadowBlur = 4;
     ctx.shadowColor = "#ffffff";
-    ctx.fillStyle = "#ff4400";
+    ctx.fillStyle = "#1a1a2e";
     ctx.beginPath();
-    ctx.arc(x + w * 0.78, y + h * 0.42, w * 0.07, 0, Math.PI * 2);
+    ctx.arc(x + w * 0.71, y + h * 0.2, w * 0.05, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.76, y + h * 0.4, w * 0.03, 0, Math.PI * 2);
-    ctx.fill();
+
+    // Arm holding perfume bottle
     ctx.shadowBlur = 6;
-    ctx.shadowColor = "#ffaa00";
-
-    // Beak
-    ctx.fillStyle = "#e8a820";
-    ctx.fillRect(x + w * 0.96, y + h * 0.5, w * 0.2, h * 0.1);
-
-    // Tail
-    ctx.fillStyle = "#c87010";
+    ctx.shadowColor = "#0d9488";
+    ctx.fillStyle = "#0a7a70";
     ctx.beginPath();
-    ctx.roundRect(x - w * 0.25, y + h * 0.5, w * 0.3, h * 0.25, 3);
+    ctx.roundRect(x + w * 0.75, y + h * 0.38, w * 0.18, h * 0.32, 3);
+    ctx.fill();
+
+    // Mini perfume bottle in hand
+    ctx.fillStyle = "#d4a017";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.88, y + h * 0.3, w * 0.12, h * 0.08, 2);
+    ctx.fill();
+    ctx.fillStyle = "#6b21a8";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.85, y + h * 0.37, w * 0.16, h * 0.28, 3);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.3)";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.87, y + h * 0.4, w * 0.05, h * 0.1, 1);
+    ctx.fill();
+
+    // Legs crouched
+    ctx.fillStyle = "#0a5c53";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.2, y + h * 0.78, w * 0.2, h * 0.22, 3);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.5, y + h * 0.78, w * 0.2, h * 0.22, 3);
+    ctx.fill();
+    // Shoes
+    ctx.fillStyle = "#d4a017";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.14, y + h * 0.92, w * 0.3, h * 0.1, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.44, y + h * 0.92, w * 0.3, h * 0.1, 2);
     ctx.fill();
   } else {
-    // Standing body
-    ctx.fillStyle = "#e8a820";
-    ctx.beginPath();
-    ctx.roundRect(x, y + h * 0.2, w * 0.72, h * 0.72, 4);
-    ctx.fill();
-
-    // Back bump / spine
-    ctx.fillStyle = "#d4901a";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.05, y + h * 0.15, w * 0.55, h * 0.3, 6);
-    ctx.fill();
-
-    // Head
-    ctx.fillStyle = "#e8a820";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.3, y, w * 0.52, h * 0.48, 4);
-    ctx.fill();
-
-    // Head detail
-    ctx.fillStyle = "#d4901a";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.32, y + h * 0.04, w * 0.46, h * 0.2, 3);
-    ctx.fill();
-
-    // Eye with glow
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "#ff6600";
-    ctx.fillStyle = "#ff3300";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.65, y + h * 0.14, w * 0.08, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.63, y + h * 0.12, w * 0.035, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = "#ffaa00";
-
-    // Beak
-    ctx.fillStyle = "#c87010";
-    ctx.fillRect(x + w * 0.78, y + h * 0.26, w * 0.28, h * 0.1);
-
-    // Tail
-    ctx.fillStyle = "#c87010";
-    ctx.beginPath();
-    ctx.roundRect(x - w * 0.22, y + h * 0.3, w * 0.28, h * 0.28, 3);
-    ctx.fill();
-
-    // Legs (4-frame animation)
+    // ── Standing / running pose ──────────────────────────────────────────────
+    // Legs (animated 4-frame)
     const legOffsets = [
-      [0, h * 0.12],
-      [h * 0.08, h * 0.04],
-      [h * 0.12, 0],
-      [h * 0.04, h * 0.08],
+      [0, h * 0.13],
+      [h * 0.09, h * 0.04],
+      [h * 0.13, 0],
+      [h * 0.04, h * 0.09],
     ];
     const [l1, l2] = legOffsets[frame];
 
-    ctx.fillStyle = "#b87010";
-    // Leg 1
+    // Legs
+    ctx.fillStyle = "#0a5c53";
     ctx.beginPath();
-    ctx.roundRect(x + w * 0.1, y + h * 0.85, w * 0.2, h * 0.15 + l1, 2);
+    ctx.roundRect(x + w * 0.2, y + h * 0.72, w * 0.2, h * 0.22 + l1, 3);
     ctx.fill();
-    // Leg 2
     ctx.beginPath();
-    ctx.roundRect(x + w * 0.42, y + h * 0.85, w * 0.2, h * 0.15 + l2, 2);
+    ctx.roundRect(x + w * 0.5, y + h * 0.72, w * 0.2, h * 0.22 + l2, 3);
+    ctx.fill();
+    // Shoes
+    ctx.fillStyle = "#d4a017";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.12, y + h + l1 - h * 0.05, w * 0.32, h * 0.08, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.42, y + h + l2 - h * 0.05, w * 0.32, h * 0.08, 2);
     ctx.fill();
 
-    // Foot details
-    ctx.fillStyle = "#a06010";
-    ctx.fillRect(x + w * 0.06, y + h + l1 - h * 0.02, w * 0.28, h * 0.06);
-    ctx.fillRect(x + w * 0.38, y + h + l2 - h * 0.02, w * 0.28, h * 0.06);
+    // Coat/body
+    ctx.fillStyle = "#0d9488";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.1, y + h * 0.28, w * 0.68, h * 0.5, 5);
+    ctx.fill();
+
+    // Coat lapels
+    ctx.fillStyle = "#0a7a70";
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.35, y + h * 0.28);
+    ctx.lineTo(x + w * 0.48, y + h * 0.52);
+    ctx.lineTo(x + w * 0.25, y + h * 0.52);
+    ctx.closePath();
+    ctx.fill();
+
+    // Gold button row
+    ctx.fillStyle = "#d4a017";
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.arc(
+        x + w * 0.44,
+        y + h * (0.35 + i * 0.11),
+        w * 0.04,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+
+    // Back arm
+    ctx.fillStyle = "#0a6b62";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.06, y + h * 0.3, w * 0.16, h * 0.35, 3);
+    ctx.fill();
+
+    // Neck
+    ctx.fillStyle = "#f5c5a3";
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.38, y + h * 0.18, w * 0.16, h * 0.14, 3);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = "#f5c5a3";
+    ctx.beginPath();
+    ctx.arc(x + w * 0.48, y + h * 0.12, w * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Hair bun
+    ctx.fillStyle = "#4a2c0a";
+    ctx.beginPath();
+    ctx.arc(x + w * 0.48, y - h * 0.03, w * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    // Hair strand
+    ctx.beginPath();
+    ctx.arc(x + w * 0.65, y + h * 0.04, w * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = "#ffffff";
+    ctx.fillStyle = "#1a1a2e";
+    ctx.beginPath();
+    ctx.arc(x + w * 0.57, y + h * 0.1, w * 0.055, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(x + w * 0.555, y + h * 0.09, w * 0.022, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Front arm holding perfume
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = "#0d9488";
+    ctx.fillStyle = "#0d9488";
+    // Arm angled forward
+    const armY = frame < 2 ? y + h * 0.3 : y + h * 0.34;
+    ctx.beginPath();
+    ctx.roundRect(x + w * 0.72, armY, w * 0.18, h * 0.32, 3);
+    ctx.fill();
+    // Hand
+    ctx.fillStyle = "#f5c5a3";
+    ctx.beginPath();
+    ctx.arc(x + w * 0.82, armY + h * 0.32, w * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Perfume bottle in hand
+    const bottleX = x + w * 0.88;
+    const bottleY = armY + h * 0.18;
+    // Cap
+    ctx.fillStyle = "#d4a017";
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = "#d4a017";
+    ctx.beginPath();
+    ctx.roundRect(bottleX, bottleY, w * 0.14, h * 0.06, 2);
+    ctx.fill();
+    // Neck
+    ctx.fillStyle = "#9333ea";
+    ctx.beginPath();
+    ctx.roundRect(
+      bottleX + w * 0.04,
+      bottleY + h * 0.06,
+      w * 0.06,
+      h * 0.06,
+      1,
+    );
+    ctx.fill();
+    // Bottle body
+    ctx.fillStyle = "#6b21a8";
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "#c084fc";
+    ctx.beginPath();
+    ctx.roundRect(bottleX, bottleY + h * 0.12, w * 0.14, h * 0.22, 3);
+    ctx.fill();
+    // Label
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.beginPath();
+    ctx.roundRect(bottleX + w * 0.02, bottleY + h * 0.16, w * 0.1, h * 0.1, 1);
+    ctx.fill();
+    // Shine
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.beginPath();
+    ctx.roundRect(
+      bottleX + w * 0.02,
+      bottleY + h * 0.13,
+      w * 0.03,
+      h * 0.08,
+      1,
+    );
+    ctx.fill();
   }
 
   ctx.shadowBlur = 0;
 }
 
-function drawCactus(ctx: CanvasRenderingContext2D, obs: Obstacle) {
+// ─── Obstacle drawing ─────────────────────────────────────────────────────────
+function drawObstacle(ctx: CanvasRenderingContext2D, obs: Obstacle) {
   const { x, y, width: w, height: h, type } = obs;
 
-  if (type === "bird") {
-    // Neon bird
-    const flap = Math.floor(Date.now() / 150) % 2 === 0;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = "#ff00ff";
-    ctx.fillStyle = "#cc00ff";
+  if (type === "coin") {
+    // Flying gold coin (like a bird) at different heights
+    const spinFrame = Math.floor(Date.now() / 100) % 4;
+    const scaleX = [1, 0.6, 0.15, 0.6][spinFrame];
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = "#fbbf24";
 
-    // Body
+    // Coin body (ellipse to simulate spin)
+    ctx.fillStyle = "#f59e0b";
     ctx.beginPath();
-    ctx.ellipse(x + w * 0.5, y + h * 0.55, w * 0.4, h * 0.3, 0, 0, Math.PI * 2);
+    ctx.ellipse(
+      x + w * 0.5,
+      y + h * 0.5,
+      w * 0.45 * scaleX,
+      h * 0.45,
+      0,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
 
-    // Wings
-    ctx.fillStyle = "#ff44ff";
-    if (flap) {
-      // Wings up
+    if (scaleX > 0.4) {
+      // Gold rim
+      ctx.strokeStyle = "#d4a017";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(x + w * 0.1, y + h * 0.55);
-      ctx.lineTo(x - w * 0.1, y + h * 0.1);
-      ctx.lineTo(x + w * 0.5, y + h * 0.4);
-      ctx.fill();
+      ctx.ellipse(
+        x + w * 0.5,
+        y + h * 0.5,
+        w * 0.45 * scaleX,
+        h * 0.45,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx.stroke();
+
+      // ₹ symbol
+      ctx.fillStyle = "#7c3f00";
+      ctx.font = `bold ${Math.round(h * 0.45)}px monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("₹", x + w * 0.5, y + h * 0.52);
+      ctx.textBaseline = "alphabetic";
+
+      // Shine streak
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
       ctx.beginPath();
-      ctx.moveTo(x + w * 0.9, y + h * 0.55);
-      ctx.lineTo(x + w * 1.1, y + h * 0.1);
-      ctx.lineTo(x + w * 0.5, y + h * 0.4);
-      ctx.fill();
-    } else {
-      // Wings level
-      ctx.beginPath();
-      ctx.moveTo(x + w * 0.1, y + h * 0.55);
-      ctx.lineTo(x - w * 0.15, y + h * 0.7);
-      ctx.lineTo(x + w * 0.5, y + h * 0.5);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x + w * 0.9, y + h * 0.55);
-      ctx.lineTo(x + w * 1.15, y + h * 0.7);
-      ctx.lineTo(x + w * 0.5, y + h * 0.5);
+      ctx.ellipse(
+        x + w * 0.35,
+        y + h * 0.3,
+        w * 0.12 * scaleX,
+        h * 0.1,
+        -0.4,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
     }
-
-    // Eye
-    ctx.fillStyle = "#ff0000";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.68, y + h * 0.45, w * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Beak
-    ctx.fillStyle = "#ffcc00";
-    ctx.beginPath();
-    ctx.moveTo(x + w * 0.8, y + h * 0.5);
-    ctx.lineTo(x + w * 1.0, y + h * 0.6);
-    ctx.lineTo(x + w * 0.8, y + h * 0.65);
-    ctx.fill();
-
     ctx.shadowBlur = 0;
     return;
   }
 
-  if (type === "fast_cactus") {
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "#ff3300";
-    ctx.fillStyle = "#ff4400";
-  } else {
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "#00ff44";
-    ctx.fillStyle = "#00cc33";
-  }
+  if (type === "fast_coin") {
+    // Fast spinning small gold coin
+    const spinFrame = Math.floor(Date.now() / 70) % 4;
+    const scaleX = [1, 0.5, 0.08, 0.5][spinFrame];
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "#fbbf24";
 
-  // Main stem
-  ctx.beginPath();
-  ctx.roundRect(x + w * 0.35, y, w * 0.3, h, 2);
-  ctx.fill();
-
-  // Left arm
-  ctx.beginPath();
-  ctx.roundRect(x, y + h * 0.25, w * 0.38, h * 0.18, 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.roundRect(x, y + h * 0.08, w * 0.15, h * 0.22, 2);
-  ctx.fill();
-
-  // Right arm
-  ctx.beginPath();
-  ctx.roundRect(x + w * 0.62, y + h * 0.35, w * 0.38, h * 0.18, 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.roundRect(x + w * 0.85, y + h * 0.18, w * 0.15, h * 0.22, 2);
-  ctx.fill();
-
-  // For double cactus, draw a second one
-  if (type === "double_cactus") {
-    const x2 = x + w + 10;
-    const h2 = h * 0.8;
+    // Outer ring
+    ctx.strokeStyle = "#d4a017";
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(x2 + w * 0.35, y + h - h2, w * 0.3, h2, 2);
-    ctx.fill();
+    ctx.ellipse(
+      x + w * 0.5,
+      y + h * 0.5,
+      w * 0.45 * scaleX,
+      h * 0.45,
+      0,
+      0,
+      Math.PI * 2,
+    );
+    ctx.stroke();
+
+    // Coin body
+    ctx.fillStyle = "#fbbf24";
     ctx.beginPath();
-    ctx.roundRect(x2, y + h - h2 + h2 * 0.3, w * 0.38, h2 * 0.18, 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(
-      x2 + w * 0.62,
-      y + h - h2 + h2 * 0.25,
-      w * 0.38,
-      h2 * 0.18,
-      2,
+    ctx.ellipse(
+      x + w * 0.5,
+      y + h * 0.5,
+      w * 0.4 * scaleX,
+      h * 0.4,
+      0,
+      0,
+      Math.PI * 2,
     );
     ctx.fill();
+
+    if (scaleX > 0.3) {
+      ctx.fillStyle = "#92400e";
+      ctx.font = `bold ${Math.round(h * 0.4)}px monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("₹", x + w * 0.5, y + h * 0.52);
+      ctx.textBaseline = "alphabetic";
+
+      // Speed streaks
+      ctx.strokeStyle = "rgba(251,191,36,0.5)";
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + w + 4 + i * 8, y + h * (0.3 + i * 0.15));
+        ctx.lineTo(x + w + 18 + i * 8, y + h * (0.3 + i * 0.15));
+        ctx.stroke();
+      }
+    }
+    ctx.shadowBlur = 0;
+    return;
+  }
+
+  // ── Perfume bottle ─────────────────────────────────────────────────────────
+  const drawPerfumeBottle = (
+    bx: number,
+    by: number,
+    bw: number,
+    bh: number,
+  ) => {
+    // Cap (gold)
+    ctx.fillStyle = "#d4a017";
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "#d4a017";
+    ctx.beginPath();
+    ctx.roundRect(bx + bw * 0.15, by, bw * 0.7, bh * 0.1, 2);
+    ctx.fill();
+
+    // Sprayer nozzle
+    ctx.fillStyle = "#b8860b";
+    ctx.beginPath();
+    ctx.roundRect(bx + bw * 0.6, by - bh * 0.06, bw * 0.25, bh * 0.1, 2);
+    ctx.fill();
+    // Nozzle tip
+    ctx.fillStyle = "#d4a017";
+    ctx.beginPath();
+    ctx.arc(bx + bw * 0.88, by - bh * 0.02, bw * 0.06, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Neck
+    ctx.fillStyle = "#9333ea";
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.roundRect(bx + bw * 0.3, by + bh * 0.1, bw * 0.4, bh * 0.1, 2);
+    ctx.fill();
+
+    // Bottle body
+    ctx.fillStyle = "#6b21a8";
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "#c084fc";
+    ctx.beginPath();
+    ctx.roundRect(bx + bw * 0.08, by + bh * 0.2, bw * 0.84, bh * 0.78, 6);
+    ctx.fill();
+
+    // Label area
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    ctx.beginPath();
+    ctx.roundRect(bx + bw * 0.18, by + bh * 0.35, bw * 0.64, bh * 0.35, 4);
+    ctx.fill();
+
+    // Label text "A"
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.font = `bold ${Math.round(bw * 0.4)}px serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("A", bx + bw * 0.5, by + bh * 0.53);
+    ctx.textBaseline = "alphabetic";
+
+    // Shine streak
+    ctx.fillStyle = "rgba(255,255,255,0.3)";
+    ctx.beginPath();
+    ctx.roundRect(bx + bw * 0.12, by + bh * 0.22, bw * 0.12, bh * 0.5, 3);
+    ctx.fill();
+
+    // Base highlight
+    ctx.fillStyle = "rgba(212,160,23,0.4)";
+    ctx.beginPath();
+    ctx.roundRect(bx + bw * 0.15, by + bh * 0.9, bw * 0.7, bh * 0.08, 2);
+    ctx.fill();
+  };
+
+  if (type === "perfume") {
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "#c084fc";
+    drawPerfumeBottle(x, y, w, h);
+  } else if (type === "double_perfume") {
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "#c084fc";
+    drawPerfumeBottle(x, y, w, h);
+    const h2 = h * 0.78;
+    const y2 = y + h - h2;
+    drawPerfumeBottle(x + w + 10, y2, w, h2);
   }
 
   ctx.shadowBlur = 0;
@@ -498,7 +700,7 @@ function spawnParticles(
   }
 }
 
-// Precomputed confetti particle data (stable IDs, no runtime Math.random in render)
+// Precomputed confetti particle data
 const CONFETTI_PARTICLES = [
   {
     id: "c0",
@@ -936,11 +1138,11 @@ export function DinoGame() {
       obstacles: [],
       particles: [],
       score: 0,
-      speed: 6,
+      speed: 8,
       gameOver: false,
       started: false,
       frameCount: 0,
-      nextObstacleIn: 80,
+      nextObstacleIn: 50 + Math.random() * 30,
       groundY: GROUND_Y,
       lives: 2,
       doubleJumpAvailable: true,
@@ -978,12 +1180,10 @@ export function DinoGame() {
       gs.doubleJumpAvailable = true;
       setDoubleJumpAvailable(true);
     } else if (gs.dino.jumpCount === 1 && gs.doubleJumpAvailable) {
-      // Double jump!
       gs.dino.velocityY = DOUBLE_JUMP_FORCE;
       gs.dino.jumpCount = 2;
       gs.doubleJumpAvailable = false;
       setDoubleJumpAvailable(false);
-      // Spawn double jump particles
       spawnParticles(gs, gs.dino.x + DINO_W / 2, gs.dino.y + DINO_H, 8, "dust");
     }
   }, []);
@@ -995,7 +1195,6 @@ export function DinoGame() {
       isDuckingRef.current = isDucking;
 
       if (isDucking && !gs.dino.isDucking && !gs.dino.isOnGround) {
-        // Fast fall when ducking mid-air
         gs.dino.velocityY += 5;
       }
       if (isDucking && gs.dino.isOnGround) {
@@ -1020,9 +1219,8 @@ export function DinoGame() {
     const dinoTop = dino.y + marginY;
     const dinoBottom = dino.y + dino.height - marginY;
 
-    // For double cactus, extend collision width
     const obsWidth =
-      obs.type === "double_cactus" ? obs.width * 2 + 10 : obs.width;
+      obs.type === "double_perfume" ? obs.width * 2 + 10 : obs.width;
     const obsRight = obs.x + obsWidth - marginX;
     const obsLeft = obs.x + marginX;
     const obsTop = obs.y + marginY;
@@ -1049,7 +1247,6 @@ export function DinoGame() {
       lastTimeRef.current = timestamp;
 
       if (!gs.started) {
-        // Draw idle state
         ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
         drawBackground(ctx, CANVAS_W, CANVAS_H, 0, 0, gs.clouds);
         drawGround(ctx, CANVAS_W, GROUND_Y, 0, 0);
@@ -1081,7 +1278,6 @@ export function DinoGame() {
 
       // ── Update ─────────────────────────────────────────────────────────────
 
-      // Handle duck from ref
       if (isDuckingRef.current && gs.dino.isOnGround && !gs.dino.isDucking) {
         gs.dino.isDucking = true;
         gs.dino.height = DINO_DUCK_H;
@@ -1096,12 +1292,12 @@ export function DinoGame() {
         gs.dino.y = GROUND_Y - DINO_H;
       }
 
-      // Score
-      const scoreGain = Math.ceil(gs.speed * dt * 0.25 * gs.comboMultiplier);
+      // Score (harder: fewer points per frame)
+      const scoreGain = Math.ceil(gs.speed * dt * 0.12 * gs.comboMultiplier);
       gs.score += scoreGain;
 
-      // Speed increase (harder)
-      gs.speed = 6 + gs.score * 0.005;
+      // Speed increase (starts faster, slower ramp)
+      gs.speed = 8 + gs.score * 0.003;
       if (gs.speed > 25) gs.speed = 25;
 
       // Combo timer
@@ -1122,26 +1318,20 @@ export function DinoGame() {
         gs.dino.isOnGround = true;
         gs.dino.jumpCount = 0;
         if (wasInAir) {
-          // Landing particles
           spawnParticles(gs, gs.dino.x + DINO_W / 2, GROUND_Y, 6, "dust");
           gs.doubleJumpAvailable = true;
           setDoubleJumpAvailable(true);
         }
       }
 
-      // Invincibility countdown
       if (gs.dino.invincible > 0) gs.dino.invincible -= dt;
       if (gs.dino.flashTimer > 0) gs.dino.flashTimer -= dt;
       if (gs.showLifeLostText > 0) gs.showLifeLostText -= dt;
-
-      // Screen shake
       if (gs.screenShake > 0) gs.screenShake -= dt;
 
-      // Background scroll
       gs.bgOffset += gs.speed * dt;
       gs.starOffset += gs.speed * dt;
 
-      // Cloud scroll
       for (const cloud of gs.clouds) {
         cloud.x -= cloud.speed * dt;
         if (cloud.x < -cloud.w * 2) {
@@ -1150,7 +1340,6 @@ export function DinoGame() {
         }
       }
 
-      // Speed lines
       for (const line of gs.speedLines) {
         line.x -= line.speed * dt * (gs.speed / 8);
         if (line.x + line.length < 0) {
@@ -1163,76 +1352,70 @@ export function DinoGame() {
       gs.frameCount += dt;
       gs.nextObstacleIn -= dt;
       if (gs.nextObstacleIn <= 0) {
-        const minGap = Math.max(40, 80 - gs.score / 100);
+        // More frequent obstacles
+        const minGap = Math.max(25, 60 - gs.score / 80);
         gs.nextObstacleIn = minGap + Math.random() * 50;
 
         const roll = Math.random();
-        if (gs.score > 3000 && roll < 0.12) {
-          // Fast small cactus
+        if (gs.score > 2000 && roll < 0.12) {
+          // Fast coin
           const cH = 28 + Math.random() * 12;
           gs.obstacles.push({
             x: CANVAS_W + 20,
             y: GROUND_Y - cH,
-            width: 22,
+            width: 28,
             height: cH,
-            type: "fast_cactus",
+            type: "fast_coin",
             speedMultiplier: 1.8,
           });
-        } else if (gs.score > 2000 && roll < 0.25) {
-          // Double cactus
+        } else if (gs.score > 1500 && roll < 0.25) {
+          // Double perfume bottles
           const cH = 40 + Math.random() * 20;
           gs.obstacles.push({
             x: CANVAS_W + 20,
             y: GROUND_Y - cH,
             width: 28,
             height: cH,
-            type: "double_cactus",
+            type: "double_perfume",
             speedMultiplier: 1,
           });
-        } else if (gs.score > 1000 && roll < 0.4) {
-          // Bird
+        } else if (gs.score > 800 && roll < 0.4) {
+          // Flying coin at varying heights
           const birdRoll = Math.random();
-          let birdY: number;
-          let birdHeightType: "low" | "mid" | "high";
+          let coinY: number;
           if (birdRoll < 0.33) {
-            birdY = GROUND_Y - 90;
-            birdHeightType = "low"; // must jump over
+            coinY = GROUND_Y - 90;
           } else if (birdRoll < 0.66) {
-            birdY = GROUND_Y - 140;
-            birdHeightType = "mid"; // tricky - need to time
+            coinY = GROUND_Y - 145;
           } else {
-            birdY = GROUND_Y - 200;
-            birdHeightType = "high"; // can pass under by ducking
+            coinY = GROUND_Y - 200;
           }
           gs.obstacles.push({
             x: CANVAS_W + 20,
-            y: birdY,
+            y: coinY,
             width: 40,
-            height: 30,
-            type: "bird",
+            height: 40,
+            type: "coin",
             speedMultiplier: 1.1,
-            birdHeight: birdHeightType,
           });
         } else {
-          // Normal cactus
+          // Normal perfume bottle
           const cH = 40 + Math.random() * 35;
           gs.obstacles.push({
             x: CANVAS_W + 20,
             y: GROUND_Y - cH,
             width: 28,
             height: cH,
-            type: "cactus",
+            type: "perfume",
             speedMultiplier: 1,
           });
         }
       }
 
-      // Update obstacles
       gs.obstacles = gs.obstacles
         .map((o) => ({ ...o, x: o.x - gs.speed * o.speedMultiplier * dt }))
         .filter((o) => o.x > -80);
 
-      // Update particles
       gs.particles = gs.particles
         .map((p) => ({
           ...p,
@@ -1259,16 +1442,14 @@ export function DinoGame() {
 
           if (gs.lives > 1) {
             gs.lives -= 1;
-            gs.dino.invincible = 120;
-            gs.dino.flashTimer = 120;
+            gs.dino.invincible = 80;
+            gs.dino.flashTimer = 80;
             gs.showLifeLostText = 90;
             setLives(gs.lives);
-            // Push obstacle away so we don't re-collide
             obs.x = -200;
           } else {
             gs.gameOver = true;
             setFinalScore(gs.score);
-            // Save high score
             if (gs.score > highScore) {
               setHighScore(gs.score);
               setIsNewHighScore(true);
@@ -1286,7 +1467,6 @@ export function DinoGame() {
         }
       }
 
-      // Update display
       if (gs.frameCount % 4 < dt) {
         setDisplayScore(gs.score);
         setSpeedTier(getSpeedTier(gs.speed));
@@ -1306,7 +1486,6 @@ export function DinoGame() {
 
       ctx.clearRect(-10, -10, CANVAS_W + 20, CANVAS_H + 20);
 
-      // Background
       drawBackground(
         ctx,
         CANVAS_W,
@@ -1315,25 +1494,17 @@ export function DinoGame() {
         gs.starOffset,
         gs.clouds,
       );
-
-      // Speed lines
       drawSpeedLines(ctx, gs.speedLines, gs.speed);
-
-      // Ground
       drawGround(ctx, CANVAS_W, GROUND_Y, gs.bgOffset, gs.score);
 
-      // Obstacles
       for (const o of gs.obstacles) {
-        drawCactus(ctx, o);
+        drawObstacle(ctx, o);
       }
 
-      // Particles
       drawParticles(ctx, gs.particles);
-
-      // Dino
       drawDino(ctx, gs.dino, timestamp);
 
-      // HUD - score
+      // HUD score
       ctx.shadowBlur = 12;
       ctx.shadowColor = "#ffcc44";
       ctx.fillStyle = "#ffcc44";
@@ -1342,7 +1513,6 @@ export function DinoGame() {
       ctx.fillText(gs.score.toString(), CANVAS_W - 16, 32);
       ctx.shadowBlur = 0;
 
-      // High score label
       if (highScore > 0) {
         ctx.fillStyle = "rgba(255,200,100,0.4)";
         ctx.font = "11px monospace";
@@ -1350,7 +1520,6 @@ export function DinoGame() {
         ctx.fillText(`HI: ${highScore}`, CANVAS_W - 16, 50);
       }
 
-      // Combo multiplier
       if (gs.comboMultiplier > 1.05) {
         ctx.shadowBlur = 8;
         ctx.shadowColor = "#00ffff";
@@ -1361,7 +1530,6 @@ export function DinoGame() {
         ctx.shadowBlur = 0;
       }
 
-      // "1 UP LEFT!" message
       if (gs.showLifeLostText > 0) {
         const alpha = Math.min(gs.showLifeLostText / 30, 1);
         ctx.globalAlpha = alpha;
@@ -1438,7 +1606,6 @@ export function DinoGame() {
     }
   };
 
-  // Animate score count-up in reward screen
   useEffect(() => {
     if (!showReward || !finalScore) return;
     setAnimatedScore(0);
@@ -1545,7 +1712,6 @@ export function DinoGame() {
                 }}
                 onTouchMove={(e) => {
                   e.preventDefault();
-                  // Hold touch = duck
                   if (Date.now() - touchStartRef.current > 200) {
                     duck(true);
                   }
@@ -1569,7 +1735,6 @@ export function DinoGame() {
             style={{ background: "rgba(0,0,10,0.92)" }}
             data-ocid="game.reward.modal"
           >
-            {/* Particle background effect for high scores */}
             {reward && finalScore >= 5000 && (
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {CONFETTI_PARTICLES.map((p) => (
@@ -1613,12 +1778,11 @@ export function DinoGame() {
                   "0 0 40px rgba(150,80,255,0.3), 0 0 80px rgba(150,80,255,0.1)",
               }}
             >
-              {/* Top glow bar */}
               <div
                 className="h-1 w-full"
                 style={{
                   background:
-                    "linear-gradient(90deg, #cc00ff, #ff6600, #cc00ff)",
+                    "linear-gradient(90deg, #0d9488, #d4a017, #0d9488)",
                 }}
               />
 
@@ -1635,8 +1799,8 @@ export function DinoGame() {
                   <Trophy
                     className="w-12 h-12 mx-auto mb-3"
                     style={{
-                      color: "#ffcc44",
-                      filter: "drop-shadow(0 0 8px #ffcc44)",
+                      color: "#d4a017",
+                      filter: "drop-shadow(0 0 8px #d4a017)",
                     }}
                   />
                 )}
@@ -1655,12 +1819,12 @@ export function DinoGame() {
                 <h3
                   className="text-3xl font-bold mb-1"
                   style={{
-                    color: "#ffcc44",
-                    textShadow: "0 0 15px #ffaa00",
+                    color: "#d4a017",
+                    textShadow: "0 0 15px #d4a017",
                     fontFamily: "monospace",
                   }}
                 >
-                  {reward?.isFree ? "LEGENDARY!" : "GAME OVER"}
+                  {reward?.isFree ? "LEGENDARY!" : "ALVRA RUNNER"}
                 </h3>
 
                 <p
@@ -1670,7 +1834,6 @@ export function DinoGame() {
                   Your Score
                 </p>
 
-                {/* Animated score */}
                 <motion.div
                   className="text-5xl font-bold mb-6 font-mono"
                   style={{ color: "#cc88ff", textShadow: "0 0 20px #cc88ff" }}
@@ -1698,8 +1861,8 @@ export function DinoGame() {
                       transition={{ delay: 0.3, type: "spring" }}
                       className="text-3xl font-bold font-mono mb-4"
                       style={{
-                        color: "#ffcc44",
-                        textShadow: "0 0 15px #ffaa00",
+                        color: "#d4a017",
+                        textShadow: "0 0 15px #d4a017",
                       }}
                     >
                       {reward.text}
@@ -1708,12 +1871,12 @@ export function DinoGame() {
                       className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 mb-3"
                       style={{
                         background: "rgba(0,0,20,0.8)",
-                        border: "1px dashed rgba(255,200,80,0.5)",
+                        border: "1px dashed rgba(212,160,23,0.5)",
                       }}
                     >
                       <code
                         className="text-xl font-bold font-mono tracking-widest"
-                        style={{ color: "#ffcc44" }}
+                        style={{ color: "#d4a017" }}
                       >
                         {reward.coupon}
                       </code>
@@ -1722,7 +1885,7 @@ export function DinoGame() {
                       onClick={handleCopyCoupon}
                       className="w-full font-bold font-mono"
                       style={{
-                        background: "linear-gradient(90deg, #cc00ff, #ff6600)",
+                        background: "linear-gradient(90deg, #0d9488, #d4a017)",
                         border: "none",
                       }}
                       data-ocid="game.copy_coupon.button"
@@ -1765,8 +1928,8 @@ export function DinoGame() {
                   variant="outline"
                   className="w-full font-bold font-mono"
                   style={{
-                    borderColor: "rgba(150,80,255,0.5)",
-                    color: "#cc88ff",
+                    borderColor: "rgba(13,148,136,0.5)",
+                    color: "#0d9488",
                   }}
                   data-ocid="game.play_again.button"
                 >
@@ -1809,11 +1972,11 @@ export function DinoGame() {
               key={tier.score}
               className="rounded-lg px-2 py-2"
               style={{
-                background: "rgba(150,80,255,0.08)",
-                border: "1px solid rgba(150,80,255,0.2)",
+                background: "rgba(13,148,136,0.08)",
+                border: "1px solid rgba(13,148,136,0.2)",
               }}
             >
-              <div className="font-bold font-mono" style={{ color: "#ffcc44" }}>
+              <div className="font-bold font-mono" style={{ color: "#d4a017" }}>
                 {tier.score}
               </div>
               <div style={{ color: "rgba(200,160,255,0.7)" }}>
@@ -1838,16 +2001,16 @@ export function DinoGameModal() {
         size="lg"
         className="font-bold text-lg px-8 py-6 transition-all hover:scale-105"
         style={{
-          background: "linear-gradient(90deg, #cc00ff, #ff6600)",
+          background: "linear-gradient(90deg, #0d9488, #d4a017)",
           border: "none",
           color: "white",
-          boxShadow: "0 0 20px rgba(200,0,255,0.4)",
+          boxShadow: "0 0 20px rgba(13,148,136,0.4)",
           fontFamily: "monospace",
         }}
         data-ocid="game.play_button"
       >
         <Gamepad2 className="w-5 h-5 mr-2" />
-        PLAY GAME
+        PLAY ALVRA RUNNER
       </Button>
 
       <AnimatePresence>
@@ -1856,60 +2019,49 @@ export function DinoGameModal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ backgroundColor: "rgba(0,0,10,0.97)" }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,10,0.95)" }}
             data-ocid="game.modal"
           >
             <motion.div
               initial={{ scale: 0.9, y: 30 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 30 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative w-full max-w-2xl overflow-y-auto rounded-2xl"
+              className="relative w-full max-w-3xl rounded-2xl overflow-hidden"
               style={{
-                maxHeight: "95vh",
-                background: "linear-gradient(135deg, #050015 0%, #0a0025 100%)",
-                border: "1px solid rgba(150,80,255,0.4)",
-                boxShadow: "0 0 60px rgba(150,80,255,0.2)",
+                background: "#050015",
+                border: "1px solid rgba(13,148,136,0.4)",
+                boxShadow: "0 0 60px rgba(13,148,136,0.2)",
               }}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between p-5 pb-0">
-                <div>
+              <div
+                className="h-1 w-full"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #0d9488, #d4a017, #0d9488)",
+                }}
+              />
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
                   <h2
                     className="text-2xl font-bold font-mono"
                     style={{
-                      color: "#cc88ff",
-                      textShadow: "0 0 10px rgba(200,100,255,0.5)",
+                      color: "#0d9488",
+                      textShadow: "0 0 15px #0d9488",
                     }}
                   >
-                    🎮 DINO CHALLENGE
+                    🏃 ALVRA RUNNER
                   </h2>
-                  <p
-                    className="text-sm font-mono mt-0.5"
-                    style={{ color: "rgba(180,130,255,0.6)" }}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setOpen(false)}
+                    style={{ color: "rgba(200,160,255,0.6)" }}
+                    data-ocid="game.close_button"
                   >
-                    Jump over obstacles • Win real discounts
-                  </p>
+                    <X className="w-5 h-5" />
+                  </Button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="p-2 rounded-lg transition-all"
-                  style={{ color: "rgba(180,130,255,0.7)" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#cc88ff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "rgba(180,130,255,0.7)";
-                  }}
-                  data-ocid="game.close_button"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-5">
                 <DinoGame />
               </div>
             </motion.div>
