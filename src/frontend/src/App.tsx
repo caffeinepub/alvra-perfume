@@ -225,6 +225,11 @@ const TICKER_ITEMS = [
     sub: "ALVRA Promise",
   },
   {
+    icon: "🎮🌸",
+    text: "Play Dino & Win a FREE Perfume!",
+    sub: "Win Now",
+  },
+  {
     icon: "📦",
     text: "Free mini travel spray with every purchase",
     sub: "Bundle Offer",
@@ -952,6 +957,153 @@ function ProductsSection({
 }
 
 // ─── Mini Product Card (compact for MEN/WOMEN grid) ──────────────────────────────────────
+function ProductDetailModal({
+  product,
+  onClose,
+  onAddToCart,
+}: {
+  product: ReturnType<typeof getProducts>[0];
+  onClose: () => void;
+  onAddToCart: (id: bigint) => void;
+}) {
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        data-ocid="product.detail.modal"
+      >
+        <motion.div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
+
+        <motion.div
+          className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[92vh] overflow-y-auto z-10"
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          transition={{ type: "spring", damping: 24, stiffness: 260 }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            data-ocid="product.detail.close_button"
+            className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+          >
+            <X className="w-4 h-4 text-white" />
+          </button>
+
+          <div className="aspect-square w-full bg-muted overflow-hidden">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="p-6">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <h2 className="font-luxury text-2xl font-black text-foreground">
+                {product.name}
+              </h2>
+              <span
+                className="text-xs font-bold px-2.5 py-1 rounded-full text-white flex-shrink-0"
+                style={{ background: "oklch(0.58 0.16 186)" }}
+              >
+                {product.tag}
+              </span>
+            </div>
+
+            <p className="text-muted-foreground text-sm mb-4">
+              {product.description}
+            </p>
+
+            <div className="flex items-center gap-1 mb-5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className="w-4 h-4 text-amber-400 fill-amber-400"
+                />
+              ))}
+              <span className="text-sm text-muted-foreground ml-2">
+                (128 reviews)
+              </span>
+            </div>
+
+            <div
+              className="rounded-2xl border-2 border-gold p-4 mb-3"
+              style={{ background: "oklch(0.98 0.02 55)" }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-foreground text-sm">
+                  💳 Buy via EMI
+                </span>
+                <span
+                  className="text-[10px] font-black px-2 py-0.5 rounded-full text-white"
+                  style={{ background: "oklch(0.72 0.18 55)" }}
+                >
+                  EMI DISCOUNT
+                </span>
+              </div>
+              <div className="text-gold font-luxury font-black text-xl mb-1">
+                Pay ₹199 today + ₹150/week x3
+              </div>
+              <div className="text-muted-foreground text-xs">
+                Total via EMI: <span className="line-through">₹799</span>{" "}
+                <span className="text-gold font-bold">₹649</span> — discount
+                only with EMI
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border p-4 mb-5">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">
+                  Full price (no EMI)
+                </span>
+                <span className="font-luxury font-black text-foreground text-xl">
+                  ₹799
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                size="lg"
+                className="w-full bg-gold text-white font-bold rounded-full hover:bg-gold-bright transition-all hover:scale-[1.02] shadow-gold"
+                onClick={() => {
+                  onAddToCart(product.id);
+                  onClose();
+                }}
+                data-ocid="product.detail.primary_button"
+              >
+                Buy Now via EMI — Pay ₹199
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full border-gold text-gold hover:bg-gold hover:text-white transition-all rounded-full"
+                onClick={() => {
+                  onAddToCart(product.id);
+                  onClose();
+                }}
+                data-ocid="product.detail.secondary_button"
+              >
+                Add to Cart
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function MiniProductCard({
   product,
   index,
@@ -961,66 +1113,89 @@ function MiniProductCard({
   index: number;
   onAddToCart: (id: bigint) => void;
 }) {
+  const [showDetail, setShowDetail] = useState(false);
   const ocidIndex = index + 1;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-30px" }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      data-ocid={`product.card.${ocidIndex}`}
-      className="bg-white rounded-xl overflow-hidden border border-border shadow-xs hover:shadow-md transition-shadow group"
-    >
-      {/* Image */}
-      <div className="relative overflow-hidden bg-muted aspect-square">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"
+    <>
+      {showDetail && (
+        <ProductDetailModal
+          product={product}
+          onClose={() => setShowDetail(false)}
+          onAddToCart={onAddToCart}
         />
-        <div className="absolute top-1.5 left-1.5">
-          <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
-            style={{ background: "oklch(0.58 0.16 186)" }}
-          >
-            {product.tag}
-          </span>
+      )}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-30px" }}
+        transition={{ duration: 0.4, delay: index * 0.08 }}
+        data-ocid={`product.card.${ocidIndex}`}
+        className="bg-white rounded-xl overflow-hidden border border-border shadow-xs hover:shadow-md transition-shadow group cursor-pointer"
+        onClick={() => setShowDetail(true)}
+      >
+        <div className="relative overflow-hidden bg-muted aspect-square">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"
+          />
+          <div className="absolute top-1.5 left-1.5">
+            <span
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
+              style={{ background: "oklch(0.58 0.16 186)" }}
+            >
+              {product.tag}
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* Info */}
-      <div className="p-2.5">
-        <h3 className="font-bold text-foreground text-xs leading-tight mb-0.5 truncate">
-          {product.name}
-        </h3>
-        <p className="text-muted-foreground text-[10px] mb-1.5 truncate">
-          {product.description}
-        </p>
-        {/* Stars */}
-        <div className="flex items-center gap-0.5 mb-2">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <Star
-              key={s}
-              className="w-2.5 h-2.5 text-amber-400 fill-amber-400"
-            />
-          ))}
-          <span className="text-[9px] text-muted-foreground ml-1">(128)</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-luxury font-black text-gold text-sm">
-            {product.price}
-          </span>
+        <div className="p-2.5">
+          <h3 className="font-bold text-foreground text-xs leading-tight mb-0.5 truncate">
+            {product.name}
+          </h3>
+          <p className="text-muted-foreground text-[10px] mb-1.5 truncate">
+            {product.description}
+          </p>
+          <div className="flex items-center gap-0.5 mb-2">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                className="w-2.5 h-2.5 text-amber-400 fill-amber-400"
+              />
+            ))}
+            <span className="text-[9px] text-muted-foreground ml-1">(128)</span>
+          </div>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="font-luxury font-black text-gold text-sm">
+              {product.price}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart(product.id);
+              }}
+              data-ocid={`product.buy.button.${ocidIndex}`}
+              className="text-[9px] font-bold px-2 py-1 rounded-full bg-gold text-white hover:bg-gold-bright transition-colors active:scale-95"
+            >
+              Add
+            </button>
+          </div>
           <button
             type="button"
-            onClick={() => onAddToCart(product.id)}
-            data-ocid={`product.buy.button.${ocidIndex}`}
-            className="text-[9px] font-bold px-2 py-1 rounded-full bg-gold text-white hover:bg-gold-bright transition-colors active:scale-95"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDetail(true);
+            }}
+            data-ocid={`product.buynow.button.${ocidIndex}`}
+            className="w-full text-[9px] font-bold py-1.5 rounded-full text-white hover:opacity-90 transition-opacity active:scale-95"
+            style={{ background: "oklch(0.72 0.18 55)" }}
           >
-            Add
+            Buy Now
           </button>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
 
@@ -1129,7 +1304,7 @@ function GameSection() {
 }
 
 // ─── Launch Offer Section ───────────────────────────────────────────────────────────────────────
-function LaunchOfferSection() {
+function OfferAndEMISection() {
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
@@ -1158,7 +1333,6 @@ function LaunchOfferSection() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <FadeIn>
           <div className="bg-white border-2 border-gold rounded-3xl p-8 md:p-12 shadow-gold-lg relative overflow-hidden">
-            {/* Top accent line */}
             <div
               className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
               style={{
@@ -1168,19 +1342,12 @@ function LaunchOfferSection() {
             />
 
             <div className="text-center mb-8">
-              <div className="text-5xl mb-4">🔥</div>
+              <div className="text-5xl mb-4">🔥💳</div>
               <h2 className="font-luxury text-4xl md:text-5xl font-black text-gold mb-3">
-                Launch Offer
+                Launch Offer + Easy EMI
               </h2>
               <p className="text-muted-foreground text-lg mb-2">
-                Limited time. Grab it now.
-              </p>
-              <div className="text-3xl md:text-4xl font-bold text-foreground mt-4">
-                Just{" "}
-                <span className="text-gold font-luxury text-5xl">₹199</span>
-              </div>
-              <p className="text-muted-foreground text-sm mt-2 line-through">
-                Regular price ₹799
+                Everything in the box. Pay your way.
               </p>
             </div>
 
@@ -1198,100 +1365,105 @@ function LaunchOfferSection() {
               ))}
             </div>
 
-            <div className="flex justify-center">
+            <div className="bg-obsidian-2 rounded-2xl border-2 border-gold p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-foreground text-lg">
+                  💳 Buy via EMI
+                </h3>
+                <span
+                  className="text-xs font-black px-3 py-1 rounded-full text-white animate-pulse-gold"
+                  style={{ background: "oklch(0.72 0.18 55)" }}
+                >
+                  EMI DISCOUNT
+                </span>
+              </div>
+              <p className="text-muted-foreground text-sm mb-4">
+                Exclusive discount — only when you choose EMI at checkout
+              </p>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="text-center bg-white rounded-xl p-4 border border-gold">
+                  <div className="text-2xl font-bold text-gold font-luxury">
+                    ₹199
+                  </div>
+                  <div className="text-muted-foreground text-xs">Pay today</div>
+                </div>
+                <div className="flex items-center justify-center">
+                  <span className="text-muted-foreground font-bold text-lg">
+                    +
+                  </span>
+                </div>
+                <div className="text-center bg-white rounded-xl p-4 border border-border">
+                  <div className="text-2xl font-bold text-foreground font-luxury">
+                    ₹150<span className="text-sm">/wk</span>
+                  </div>
+                  <div className="text-muted-foreground text-xs">x3 weeks</div>
+                </div>
+              </div>
+              <div className="space-y-2 mb-4">
+                {[
+                  {
+                    week: "Today",
+                    amount: "₹199",
+                    note: "Pay & get it delivered",
+                  },
+                  { week: "Week 1", amount: "₹150", note: "Auto-deducted" },
+                  { week: "Week 2", amount: "₹150", note: "Auto-deducted" },
+                  { week: "Week 3", amount: "₹150", note: "Final payment" },
+                ].map((row) => (
+                  <div
+                    key={row.week}
+                    className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white border border-border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-4 h-4 text-gold" />
+                      <span className="text-foreground font-medium">
+                        {row.week}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-gold font-bold">{row.amount}</span>
+                      <span className="text-muted-foreground text-xs hidden sm:inline">
+                        {row.note}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center text-sm text-muted-foreground mb-4">
+                Total via EMI:{" "}
+                <span className="line-through text-muted-foreground">₹799</span>{" "}
+                <span className="text-gold font-bold text-lg">₹649</span>
+              </div>
               <Button
                 size="lg"
                 onClick={() => scrollTo("shop")}
-                className="bg-gold text-white font-bold text-lg px-12 py-6 hover:bg-gold-bright transition-all hover:scale-105 shadow-gold animate-pulse-gold rounded-full"
-                data-ocid="offer.grab.primary_button"
+                className="w-full bg-gold text-white font-bold py-5 hover:bg-gold-bright transition-all hover:scale-[1.02] text-base rounded-full animate-pulse-gold shadow-gold"
+                data-ocid="offer.emi.primary_button"
               >
-                Grab the Offer →
+                Buy with EMI — Pay ₹199 Now
               </Button>
             </div>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
 
-// ─── EMI Section ─────────────────────────────────────────────────────────────────────────────────────
-function EMISection() {
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  return (
-    <section data-ocid="emi.section" className="py-24 bg-background">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-        <FadeIn>
-          <SectionHeading
-            title="💳 Buy Now, Pay Later"
-            subtitle="Easy flexible payments. Own your fragrance today."
-          />
-        </FadeIn>
-
-        <FadeIn delay={0.15}>
-          <div className="bg-white border border-gold-dim rounded-2xl p-8 md:p-10 gold-glow-box mb-8 shadow-sm">
-            <div className="grid sm:grid-cols-3 gap-4 mb-6">
-              <div className="bg-obsidian-2 rounded-xl p-5 border border-gold">
-                <div className="text-3xl font-bold text-gold font-luxury mb-1">
-                  ₹199
-                </div>
-                <div className="text-muted-foreground text-sm">Pay today</div>
-              </div>
-              <div className="flex items-center justify-center">
-                <span className="text-muted-foreground font-bold text-lg">
-                  +
+            <div className="text-center">
+              <p className="text-muted-foreground text-sm mb-3">
+                Prefer to pay in full?{" "}
+                <span className="text-foreground font-semibold">
+                  ₹799 one-time
+                </span>{" "}
+                <span className="text-muted-foreground text-xs">
+                  (no EMI discount applies)
                 </span>
-              </div>
-              <div className="bg-obsidian-2 rounded-xl p-5 border border-border">
-                <div className="text-3xl font-bold text-foreground font-luxury mb-1">
-                  ₹150
-                </div>
-                <div className="text-muted-foreground text-sm">Every week</div>
-              </div>
+              </p>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => scrollTo("shop")}
+                className="border-gold text-gold hover:bg-gold hover:text-white transition-all rounded-full px-8"
+                data-ocid="offer.fullprice.secondary_button"
+              >
+                Buy Full Price ₹799
+              </Button>
             </div>
-
-            <div className="space-y-3 text-left mb-8">
-              {[
-                {
-                  week: "Today",
-                  amount: "₹199",
-                  note: "Pay & get it delivered",
-                },
-                { week: "Week 1", amount: "₹150", note: "Auto-deducted" },
-                { week: "Week 2", amount: "₹150", note: "Auto-deducted" },
-                { week: "Week 3", amount: "₹150", note: "Final payment" },
-              ].map((row) => (
-                <div
-                  key={row.week}
-                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-obsidian-2 border border-border"
-                >
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-4 h-4 text-gold" />
-                    <span className="text-foreground font-medium">
-                      {row.week}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-gold font-bold">{row.amount}</span>
-                    <span className="text-muted-foreground text-xs hidden sm:inline">
-                      {row.note}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Button
-              size="lg"
-              onClick={() => scrollTo("shop")}
-              className="w-full bg-gold text-white font-bold py-5 hover:bg-gold-bright transition-all hover:scale-[1.02] text-base rounded-full"
-              data-ocid="emi.get_started.primary_button"
-            >
-              Get Started — Pay ₹199 Now
-            </Button>
           </div>
         </FadeIn>
       </div>
@@ -1669,8 +1841,7 @@ function HomePage({
           <ProductsSection onAddToCart={handleAddToCart} />
           <GameSection />
           <CustomSectorsSection />
-          <LaunchOfferSection />
-          <EMISection />
+          <OfferAndEMISection />
           <WhySection />
           <ReviewsSection />
           <InstagramSection />
