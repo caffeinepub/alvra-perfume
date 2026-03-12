@@ -1281,6 +1281,20 @@ function ProductsSection({
 }
 
 // ─── Mini Product Card (compact for MEN/WOMEN grid) ──────────────────────────────────────
+type FeedbackEntry = {
+  name: string;
+  rating: number;
+  text: string;
+  date: string;
+};
+
+const SIZE_CONFIGS = {
+  "100ml": { price: 799, emi: { today: 199, weekly: 150 } },
+  "250ml": { price: 1299, emi: { today: 299, weekly: 250 } },
+  "500ml": { price: 1999, emi: { today: 499, weekly: 375 } },
+} as const;
+type SizeKey = keyof typeof SIZE_CONFIGS;
+
 function ProductDetailModal({
   product,
   onClose,
@@ -1290,6 +1304,53 @@ function ProductDetailModal({
   onClose: () => void;
   onAddToCart: (id: bigint) => void;
 }) {
+  const [displayProduct, setDisplayProduct] = useState(product);
+  const [selectedSize, setSelectedSize] = useState<SizeKey>("100ml");
+  const [feedbackList, setFeedbackList] = useState<FeedbackEntry[]>(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem(`alvra_feedback_${product.id}`) || "[]",
+      );
+    } catch {
+      return [];
+    }
+  });
+  const [fbName, setFbName] = useState("");
+  const [fbRating, setFbRating] = useState(5);
+  const [fbText, setFbText] = useState("");
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const sizeConfig = SIZE_CONFIGS[selectedSize];
+  const allProducts = getProducts();
+  const similarProducts = allProducts.filter(
+    (p) => String(p.id) !== String(displayProduct.id),
+  );
+
+  const handleFeedbackSubmit = () => {
+    if (!fbName.trim() || !fbText.trim()) {
+      toast.error("Please fill in your name and feedback.");
+      return;
+    }
+    const newEntry: FeedbackEntry = {
+      name: fbName.trim(),
+      rating: fbRating,
+      text: fbText.trim(),
+      date: new Date().toLocaleDateString(),
+    };
+    const updated = [newEntry, ...feedbackList];
+    setFeedbackList(updated);
+    try {
+      localStorage.setItem(
+        `alvra_feedback_${displayProduct.id}`,
+        JSON.stringify(updated),
+      );
+    } catch {}
+    toast.success("Thank you for your feedback! 🌸");
+    setFbName("");
+    setFbText("");
+    setFbRating(5);
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -1325,8 +1386,8 @@ function ProductDetailModal({
 
           <div className="aspect-square w-full bg-muted overflow-hidden">
             <img
-              src={product.image}
-              alt={product.name}
+              src={displayProduct.image}
+              alt={displayProduct.name}
               className="w-full h-full object-cover"
             />
           </div>
@@ -1334,18 +1395,18 @@ function ProductDetailModal({
           <div className="p-6">
             <div className="flex items-start justify-between gap-3 mb-3">
               <h2 className="font-luxury text-2xl font-black text-foreground">
-                {product.name}
+                {displayProduct.name}
               </h2>
               <span
                 className="text-xs font-bold px-2.5 py-1 rounded-full text-white flex-shrink-0"
                 style={{ background: "oklch(0.58 0.16 186)" }}
               >
-                {product.tag}
+                {displayProduct.tag}
               </span>
             </div>
 
             <p className="text-muted-foreground text-sm mb-4">
-              {product.description}
+              {displayProduct.description}
             </p>
 
             <div className="flex items-center gap-1 mb-5">
@@ -1358,6 +1419,39 @@ function ProductDetailModal({
               <span className="text-sm text-muted-foreground ml-2">
                 (128 reviews)
               </span>
+            </div>
+
+            {/* Size Selector */}
+            <div className="mb-4">
+              <p className="text-sm font-semibold text-foreground mb-2">
+                Select Size
+              </p>
+              <div className="flex gap-2">
+                {(["100ml", "250ml", "500ml"] as SizeKey[]).map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    data-ocid={`product.size.${size.replace("ml", "")}`}
+                    onClick={() => setSelectedSize(size)}
+                    className="flex-1 py-2 rounded-full text-sm font-bold border-2 transition-all"
+                    style={
+                      selectedSize === size
+                        ? {
+                            background: "oklch(0.58 0.16 186)",
+                            borderColor: "oklch(0.58 0.16 186)",
+                            color: "white",
+                          }
+                        : {
+                            background: "white",
+                            borderColor: "oklch(0.58 0.16 186)",
+                            color: "oklch(0.58 0.16 186)",
+                          }
+                    }
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div
@@ -1376,12 +1470,16 @@ function ProductDetailModal({
                 </span>
               </div>
               <div className="text-gold font-luxury font-black text-xl mb-1">
-                Pay ₹199 today + ₹150/week x3
+                Pay ₹{sizeConfig.emi.today} today + ₹{sizeConfig.emi.weekly}
+                /week x3
               </div>
               <div className="text-muted-foreground text-xs">
-                Total via EMI: <span className="line-through">₹799</span>{" "}
-                <span className="text-gold font-bold">₹649</span> — discount
-                only with EMI
+                Total via EMI:{" "}
+                <span className="line-through">₹{sizeConfig.price}</span>{" "}
+                <span className="text-gold font-bold">
+                  ₹{sizeConfig.emi.today + sizeConfig.emi.weekly * 3}
+                </span>{" "}
+                — discount only with EMI
               </div>
             </div>
 
@@ -1391,7 +1489,7 @@ function ProductDetailModal({
                   Full price (no EMI)
                 </span>
                 <span className="font-luxury font-black text-foreground text-xl">
-                  ₹799
+                  ₹{sizeConfig.price}
                 </span>
               </div>
             </div>
@@ -1401,25 +1499,155 @@ function ProductDetailModal({
                 size="lg"
                 className="w-full bg-gold text-white font-bold rounded-full hover:bg-gold-bright transition-all hover:scale-[1.02] shadow-gold"
                 onClick={() => {
-                  onAddToCart(product.id);
+                  onAddToCart(displayProduct.id);
                   onClose();
                 }}
                 data-ocid="product.detail.primary_button"
               >
-                Buy Now via EMI — Pay ₹199
+                Buy Now via EMI — Pay ₹{sizeConfig.emi.today}
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 className="w-full border-gold text-gold hover:bg-gold hover:text-white transition-all rounded-full"
                 onClick={() => {
-                  onAddToCart(product.id);
+                  onAddToCart(displayProduct.id);
                   onClose();
                 }}
                 data-ocid="product.detail.secondary_button"
               >
                 Add to Cart
               </Button>
+            </div>
+
+            {/* Similar Products */}
+            {similarProducts.length > 0 && (
+              <div className="mt-6 pt-5 border-t border-border">
+                <p className="text-sm font-bold text-foreground mb-3">
+                  You May Also Like
+                </p>
+                <div
+                  className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {similarProducts.slice(0, 8).map((sp, idx) => (
+                    <button
+                      key={String(sp.id)}
+                      type="button"
+                      data-ocid={`product.similar.item.${idx + 1}`}
+                      className="flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer group"
+                      onClick={() => {
+                        setDisplayProduct(sp);
+                        setSelectedSize("100ml");
+                      }}
+                    >
+                      <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-transparent group-hover:border-teal-400 transition-all">
+                        <img
+                          src={sp.image}
+                          alt={sp.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-[10px] text-muted-foreground text-center max-w-[80px] leading-tight truncate w-20">
+                        {sp.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Customer Feedback */}
+            <div className="mt-6 pt-5 border-t border-border">
+              <p className="text-sm font-bold text-foreground mb-3">
+                Customer Reviews
+              </p>
+              {feedbackList.length === 0 ? (
+                <p
+                  className="text-xs text-muted-foreground mb-4"
+                  data-ocid="feedback.empty_state"
+                >
+                  No reviews yet. Be the first!
+                </p>
+              ) : (
+                <div className="space-y-3 mb-4">
+                  {feedbackList.slice(0, 3).map((fb) => (
+                    <div
+                      key={`${fb.name}-${fb.date}`}
+                      className="rounded-xl p-3 border border-border bg-muted/30"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-foreground">
+                          {fb.name}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {fb.date}
+                        </span>
+                      </div>
+                      <div className="flex gap-0.5 mb-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            className={`w-3 h-3 ${s <= fb.rating ? "text-amber-400 fill-amber-400" : "text-gray-300"}`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{fb.text}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Submit review form */}
+              <div
+                className="rounded-xl border border-border p-4 space-y-3"
+                style={{ background: "oklch(0.98 0.01 186)" }}
+              >
+                <p className="text-xs font-bold text-foreground">
+                  Write a Review
+                </p>
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={fbName}
+                  onChange={(e) => setFbName(e.target.value)}
+                  data-ocid="feedback.name.input"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                />
+                <div className="flex gap-1" data-ocid="feedback.rating.toggle">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onMouseEnter={() => setHoverRating(s)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setFbRating(s)}
+                      className="p-0.5"
+                    >
+                      <Star
+                        className={`w-5 h-5 ${s <= (hoverRating || fbRating) ? "text-amber-400 fill-amber-400" : "text-gray-300"}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  placeholder="Share your experience..."
+                  value={fbText}
+                  onChange={(e) => setFbText(e.target.value)}
+                  data-ocid="feedback.text.textarea"
+                  rows={3}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
+                />
+                <Button
+                  size="sm"
+                  onClick={handleFeedbackSubmit}
+                  data-ocid="feedback.submit_button"
+                  className="w-full font-bold rounded-full"
+                  style={{ background: "oklch(0.58 0.16 186)", color: "white" }}
+                >
+                  Submit Review
+                </Button>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -1524,6 +1752,77 @@ function MiniProductCard({
 }
 
 // ─── Game Section ──────────────────────────────────────────────────────────────────────────────────
+function DinoLeaderboard() {
+  const [entries, setEntries] = useState<
+    { name: string; score: number; date: string }[]
+  >([]);
+  useEffect(() => {
+    try {
+      const data = JSON.parse(
+        localStorage.getItem("alvra_leaderboard") || "[]",
+      );
+      setEntries(data);
+    } catch {
+      setEntries([]);
+    }
+  }, []);
+  const medals = ["🥇", "🥈", "🥉"];
+  return (
+    <div
+      className="mt-8 rounded-2xl p-6"
+      style={{
+        background: "rgba(255,255,255,0.08)",
+        border: "1px solid rgba(255,255,255,0.15)",
+      }}
+      data-ocid="leaderboard.panel"
+    >
+      <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+        <span>🏆</span> Top Players
+      </h3>
+      {entries.length === 0 ? (
+        <p
+          className="text-white/60 text-sm text-center py-4"
+          data-ocid="leaderboard.empty_state"
+        >
+          Be the first to make the leaderboard!
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {entries.map((e, i) => (
+            <div
+              key={`${e.name}-${e.score}`}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
+              data-ocid={`leaderboard.item.${i + 1}`}
+              style={{
+                background:
+                  i === 0
+                    ? "rgba(212,160,23,0.25)"
+                    : i === 1
+                      ? "rgba(180,180,180,0.18)"
+                      : i === 2
+                        ? "rgba(180,120,60,0.2)"
+                        : "rgba(255,255,255,0.07)",
+                border: i < 3 ? "1px solid rgba(255,255,255,0.2)" : "none",
+              }}
+            >
+              <span className="text-xl w-7 text-center">
+                {medals[i] ?? `${i + 1}`}
+              </span>
+              <span className="flex-1 text-white font-semibold text-sm truncate">
+                {e.name}
+              </span>
+              <span className="text-white/80 text-sm font-bold font-mono">
+                {e.score.toLocaleString()}
+              </span>
+              <span className="text-white/40 text-xs ml-1">{e.date}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GameSection() {
   return (
     <section
@@ -1620,6 +1919,7 @@ function GameSection() {
             <div className="flex justify-center">
               <DinoGameModal />
             </div>
+            <DinoLeaderboard />
           </div>
         </FadeIn>
       </div>

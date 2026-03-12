@@ -4,6 +4,22 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+// ─── Leaderboard utility ─────────────────────────────────────────────────────
+export function saveToLeaderboard(name: string, score: number) {
+  try {
+    const existing: { name: string; score: number; date: string }[] =
+      JSON.parse(localStorage.getItem("alvra_leaderboard") || "[]");
+    existing.push({
+      name: name.trim() || "Anonymous",
+      score,
+      date: new Date().toLocaleDateString(),
+    });
+    existing.sort((a, b) => b.score - a.score);
+    const top10 = existing.slice(0, 10);
+    localStorage.setItem("alvra_leaderboard", JSON.stringify(top10));
+  } catch {}
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Dino {
   x: number;
@@ -1138,7 +1154,7 @@ export function DinoGame() {
       obstacles: [],
       particles: [],
       score: 0,
-      speed: 8,
+      speed: 11,
       gameOver: false,
       started: false,
       frameCount: 0,
@@ -1293,12 +1309,12 @@ export function DinoGame() {
       }
 
       // Score (harder: fewer points per frame)
-      const scoreGain = Math.ceil(gs.speed * dt * 0.12 * gs.comboMultiplier);
+      const scoreGain = Math.ceil(gs.speed * dt * 0.035 * gs.comboMultiplier);
       gs.score += scoreGain;
 
       // Speed increase (starts faster, slower ramp)
-      gs.speed = 8 + gs.score * 0.003;
-      if (gs.speed > 25) gs.speed = 25;
+      gs.speed = 11 + gs.score * 0.007;
+      if (gs.speed > 38) gs.speed = 38;
 
       // Combo timer
       gs.comboTimer += dt;
@@ -1353,11 +1369,11 @@ export function DinoGame() {
       gs.nextObstacleIn -= dt;
       if (gs.nextObstacleIn <= 0) {
         // More frequent obstacles
-        const minGap = Math.max(25, 60 - gs.score / 80);
-        gs.nextObstacleIn = minGap + Math.random() * 50;
+        const minGap = Math.max(12, 40 - gs.score / 60);
+        gs.nextObstacleIn = minGap + Math.random() * 28;
 
         const roll = Math.random();
-        if (gs.score > 2000 && roll < 0.12) {
+        if (gs.score > 600 && roll < 0.22) {
           // Fast coin
           const cH = 28 + Math.random() * 12;
           gs.obstacles.push({
@@ -1368,7 +1384,7 @@ export function DinoGame() {
             type: "fast_coin",
             speedMultiplier: 1.8,
           });
-        } else if (gs.score > 1500 && roll < 0.25) {
+        } else if (gs.score > 400 && roll < 0.4) {
           // Double perfume bottles
           const cH = 40 + Math.random() * 20;
           gs.obstacles.push({
@@ -1379,7 +1395,7 @@ export function DinoGame() {
             type: "double_perfume",
             speedMultiplier: 1,
           });
-        } else if (gs.score > 800 && roll < 0.4) {
+        } else if (gs.score > 200 && roll < 0.55) {
           // Flying coin at varying heights
           const birdRoll = Math.random();
           let coinY: number;
@@ -1461,6 +1477,27 @@ export function DinoGame() {
               } catch {}
             }
             setShowReward(true);
+            // Leaderboard prompt
+            try {
+              const board: { name: string; score: number }[] = JSON.parse(
+                localStorage.getItem("alvra_leaderboard") || "[]",
+              );
+              const finalScoreVal = gs.score;
+              if (
+                board.length < 10 ||
+                finalScoreVal > (board[board.length - 1]?.score ?? 0)
+              ) {
+                setTimeout(() => {
+                  const playerName = window.prompt(
+                    "🏆 You made the leaderboard! Enter your name:",
+                    "Player",
+                  );
+                  if (playerName !== null) {
+                    saveToLeaderboard(playerName, finalScoreVal);
+                  }
+                }, 400);
+              }
+            } catch {}
             return;
           }
           break;
@@ -1564,7 +1601,11 @@ export function DinoGame() {
     isDuckingRef.current = false;
     lastTimeRef.current = performance.now();
     cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(gameLoop);
+    // Use setTimeout to ensure React has committed state updates before starting the loop
+    setTimeout(() => {
+      lastTimeRef.current = performance.now();
+      rafRef.current = requestAnimationFrame(gameLoop);
+    }, 0);
   }, [initGameState, gameLoop]);
 
   useEffect(() => {
@@ -1660,287 +1701,276 @@ export function DinoGame() {
         </div>
       )}
 
-      <AnimatePresence mode="wait">
-        {!showReward && (
-          <motion.div
-            key="canvas"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="relative w-full"
-            style={{ maxWidth: CANVAS_W }}
+      <div className="relative w-full" style={{ maxWidth: CANVAS_W }}>
+        <div className="relative w-full">
+          <div
+            className="relative rounded-xl overflow-hidden"
+            style={{
+              border: "1px solid rgba(150,80,255,0.4)",
+              boxShadow:
+                "0 0 20px rgba(150,80,255,0.2), 0 0 40px rgba(150,80,255,0.1)",
+            }}
           >
-            <div
-              className="relative rounded-xl overflow-hidden"
-              style={{
-                border: "1px solid rgba(150,80,255,0.4)",
-                boxShadow:
-                  "0 0 20px rgba(150,80,255,0.2), 0 0 40px rgba(150,80,255,0.1)",
-              }}
-            >
-              <canvas
-                ref={canvasRef}
-                width={CANVAS_W}
-                height={CANVAS_H}
-                className="w-full h-auto cursor-pointer block"
-                onClick={jump}
-                onKeyDown={(e) => {
-                  if (e.code === "Space" || e.code === "ArrowUp") {
-                    e.preventDefault();
-                    jump();
-                  }
-                  if (e.code === "ArrowDown") {
-                    e.preventDefault();
-                    duck(true);
-                  }
-                }}
-                onKeyUp={(e) => {
-                  if (e.code === "ArrowDown") {
-                    e.preventDefault();
-                    duck(false);
-                  }
-                }}
-                onTouchStart={(e) => {
+            <canvas
+              ref={canvasRef}
+              width={CANVAS_W}
+              height={CANVAS_H}
+              className="w-full h-auto cursor-pointer block"
+              onClick={jump}
+              onKeyDown={(e) => {
+                if (e.code === "Space" || e.code === "ArrowUp") {
                   e.preventDefault();
-                  touchStartRef.current = Date.now();
                   jump();
-                }}
-                onTouchEnd={(e) => {
+                }
+                if (e.code === "ArrowDown") {
+                  e.preventDefault();
+                  duck(true);
+                }
+              }}
+              onKeyUp={(e) => {
+                if (e.code === "ArrowDown") {
                   e.preventDefault();
                   duck(false);
-                }}
-                onTouchMove={(e) => {
-                  e.preventDefault();
-                  if (Date.now() - touchStartRef.current > 200) {
-                    duck(true);
-                  }
-                }}
-                data-ocid="game.canvas_target"
-                tabIndex={0}
-                style={{ touchAction: "none" }}
-              />
-            </div>
-          </motion.div>
-        )}
-
-        {/* Reward popup */}
-        {showReward && (
-          <motion.div
-            key="reward"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,10,0.92)" }}
-            data-ocid="game.reward.modal"
-          >
-            {reward && finalScore >= 5000 && (
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {CONFETTI_PARTICLES.map((p) => (
-                  <motion.div
-                    key={p.id}
-                    className="absolute rounded-full"
-                    style={{
-                      width: p.w,
-                      height: p.h,
-                      left: `${p.left}%`,
-                      top: `${p.top}%`,
-                      background: p.color,
-                    }}
-                    animate={{
-                      y: [0, p.yDist],
-                      opacity: [1, 0],
-                      scale: [1, 0],
-                    }}
-                    transition={{
-                      duration: p.duration,
-                      delay: p.delay,
-                      repeat: Number.POSITIVE_INFINITY,
-                      repeatDelay: p.repeatDelay,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-
-            <motion.div
-              initial={{ scale: 0.7, y: 40, rotateX: -15 }}
-              animate={{ scale: 1, y: 0, rotateX: 0 }}
-              exit={{ scale: 0.8, y: 20 }}
-              transition={{ type: "spring", stiffness: 280, damping: 22 }}
-              className="relative w-full max-w-md mx-auto rounded-2xl overflow-hidden"
-              style={{
-                background:
-                  "linear-gradient(135deg, #0a0025 0%, #150030 50%, #0a0020 100%)",
-                border: "1px solid rgba(150,80,255,0.5)",
-                boxShadow:
-                  "0 0 40px rgba(150,80,255,0.3), 0 0 80px rgba(150,80,255,0.1)",
+                }
               }}
-            >
-              <div
-                className="h-1 w-full"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #0d9488, #d4a017, #0d9488)",
-                }}
-              />
+              onTouchStart={(e) => {
+                e.preventDefault();
+                touchStartRef.current = Date.now();
+                jump();
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                duck(false);
+              }}
+              onTouchMove={(e) => {
+                e.preventDefault();
+                if (Date.now() - touchStartRef.current > 200) {
+                  duck(true);
+                }
+              }}
+              data-ocid="game.canvas_target"
+              tabIndex={0}
+              style={{ touchAction: "none" }}
+            />
+          </div>
+        </div>
+      </div>
 
-              <div className="p-8 text-center">
-                {reward?.isFree ? (
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 0.6, repeat: 3 }}
-                    className="text-5xl mb-3"
-                  >
-                    🎉
-                  </motion.div>
-                ) : (
-                  <Trophy
-                    className="w-12 h-12 mx-auto mb-3"
-                    style={{
-                      color: "#d4a017",
-                      filter: "drop-shadow(0 0 8px #d4a017)",
-                    }}
-                  />
-                )}
+      {/* Reward popup */}
+      {showReward && (
+        <motion.div
+          key="reward"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,10,0.92)" }}
+          data-ocid="game.reward.modal"
+        >
+          {reward && finalScore >= 5000 && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {CONFETTI_PARTICLES.map((p) => (
+                <motion.div
+                  key={p.id}
+                  className="absolute rounded-full"
+                  style={{
+                    width: p.w,
+                    height: p.h,
+                    left: `${p.left}%`,
+                    top: `${p.top}%`,
+                    background: p.color,
+                  }}
+                  animate={{
+                    y: [0, p.yDist],
+                    opacity: [1, 0],
+                    scale: [1, 0],
+                  }}
+                  transition={{
+                    duration: p.duration,
+                    delay: p.delay,
+                    repeat: Number.POSITIVE_INFINITY,
+                    repeatDelay: p.repeatDelay,
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
-                {isNewHighScore && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="mb-2 text-xs font-mono font-bold tracking-widest"
-                    style={{ color: "#00ffcc", textShadow: "0 0 10px #00ffcc" }}
-                  >
-                    ★ NEW HIGH SCORE! ★
-                  </motion.div>
-                )}
+          <motion.div
+            initial={{ scale: 0.7, y: 40, rotateX: -15 }}
+            animate={{ scale: 1, y: 0, rotateX: 0 }}
+            exit={{ scale: 0.8, y: 20 }}
+            transition={{ type: "spring", stiffness: 280, damping: 22 }}
+            className="relative w-full max-w-md mx-auto rounded-2xl overflow-hidden"
+            style={{
+              background:
+                "linear-gradient(135deg, #0a0025 0%, #150030 50%, #0a0020 100%)",
+              border: "1px solid rgba(150,80,255,0.5)",
+              boxShadow:
+                "0 0 40px rgba(150,80,255,0.3), 0 0 80px rgba(150,80,255,0.1)",
+            }}
+          >
+            <div
+              className="h-1 w-full"
+              style={{
+                background: "linear-gradient(90deg, #0d9488, #d4a017, #0d9488)",
+              }}
+            />
 
-                <h3
-                  className="text-3xl font-bold mb-1"
+            <div className="p-8 text-center">
+              {reward?.isFree ? (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 0.6, repeat: 3 }}
+                  className="text-5xl mb-3"
+                >
+                  🎉
+                </motion.div>
+              ) : (
+                <Trophy
+                  className="w-12 h-12 mx-auto mb-3"
                   style={{
                     color: "#d4a017",
-                    textShadow: "0 0 15px #d4a017",
-                    fontFamily: "monospace",
+                    filter: "drop-shadow(0 0 8px #d4a017)",
                   }}
-                >
-                  {reward?.isFree ? "LEGENDARY!" : "ALVRA RUNNER"}
-                </h3>
+                />
+              )}
 
-                <p
-                  className="text-sm mb-4"
-                  style={{ color: "rgba(200,160,255,0.7)" }}
-                >
-                  Your Score
-                </p>
-
+              {isNewHighScore && (
                 <motion.div
-                  className="text-5xl font-bold mb-6 font-mono"
-                  style={{ color: "#cc88ff", textShadow: "0 0 20px #cc88ff" }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="mb-2 text-xs font-mono font-bold tracking-widest"
+                  style={{ color: "#00ffcc", textShadow: "0 0 10px #00ffcc" }}
                 >
-                  {animatedScore.toLocaleString()}
+                  ★ NEW HIGH SCORE! ★
                 </motion.div>
+              )}
 
-                {reward ? (
-                  <div
-                    className="rounded-xl p-5 mb-5"
-                    style={{
-                      background: "rgba(150,80,255,0.1)",
-                      border: "1px solid rgba(150,80,255,0.3)",
-                    }}
-                  >
-                    <p
-                      className="text-xs font-mono mb-1"
-                      style={{ color: "rgba(200,160,255,0.6)" }}
-                    >
-                      YOUR REWARD
-                    </p>
-                    <motion.p
-                      initial={{ scale: 0.8 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.3, type: "spring" }}
-                      className="text-3xl font-bold font-mono mb-4"
-                      style={{
-                        color: "#d4a017",
-                        textShadow: "0 0 15px #d4a017",
-                      }}
-                    >
-                      {reward.text}
-                    </motion.p>
-                    <div
-                      className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 mb-3"
-                      style={{
-                        background: "rgba(0,0,20,0.8)",
-                        border: "1px dashed rgba(212,160,23,0.5)",
-                      }}
-                    >
-                      <code
-                        className="text-xl font-bold font-mono tracking-widest"
-                        style={{ color: "#d4a017" }}
-                      >
-                        {reward.coupon}
-                      </code>
-                    </div>
-                    <Button
-                      onClick={handleCopyCoupon}
-                      className="w-full font-bold font-mono"
-                      style={{
-                        background: "linear-gradient(90deg, #0d9488, #d4a017)",
-                        border: "none",
-                      }}
-                      data-ocid="game.copy_coupon.button"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      COPY COUPON CODE
-                    </Button>
-                    {reward.isFree && (
-                      <p className="text-sm mt-3" style={{ color: "#00ffcc" }}>
-                        🎉 You won a FREE ALVRA perfume! Use code{" "}
-                        <strong>FREEALVRA</strong> at checkout.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    className="rounded-xl p-4 mb-5"
-                    style={{
-                      background: "rgba(255,100,0,0.1)",
-                      border: "1px solid rgba(255,100,0,0.3)",
-                    }}
-                  >
-                    <p
-                      className="text-sm font-mono"
-                      style={{ color: "rgba(255,180,100,0.8)" }}
-                    >
-                      Score 500+ to unlock rewards!
-                    </p>
-                    <p
-                      className="text-xs mt-2 font-mono"
-                      style={{ color: "rgba(200,160,255,0.6)" }}
-                    >
-                      500 → ₹20 OFF • 1000 → ₹50 OFF • 3000 → ₹150 OFF
-                    </p>
-                  </div>
-                )}
+              <h3
+                className="text-3xl font-bold mb-1"
+                style={{
+                  color: "#d4a017",
+                  textShadow: "0 0 15px #d4a017",
+                  fontFamily: "monospace",
+                }}
+              >
+                {reward?.isFree ? "LEGENDARY!" : "ALVRA RUNNER"}
+              </h3>
 
-                <Button
-                  onClick={startGame}
-                  variant="outline"
-                  className="w-full font-bold font-mono"
+              <p
+                className="text-sm mb-4"
+                style={{ color: "rgba(200,160,255,0.7)" }}
+              >
+                Your Score
+              </p>
+
+              <motion.div
+                className="text-5xl font-bold mb-6 font-mono"
+                style={{ color: "#cc88ff", textShadow: "0 0 20px #cc88ff" }}
+              >
+                {animatedScore.toLocaleString()}
+              </motion.div>
+
+              {reward ? (
+                <div
+                  className="rounded-xl p-5 mb-5"
                   style={{
-                    borderColor: "rgba(13,148,136,0.5)",
-                    color: "#0d9488",
+                    background: "rgba(150,80,255,0.1)",
+                    border: "1px solid rgba(150,80,255,0.3)",
                   }}
-                  data-ocid="game.play_again.button"
                 >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  PLAY AGAIN
-                </Button>
-              </div>
-            </motion.div>
+                  <p
+                    className="text-xs font-mono mb-1"
+                    style={{ color: "rgba(200,160,255,0.6)" }}
+                  >
+                    YOUR REWARD
+                  </p>
+                  <motion.p
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: "spring" }}
+                    className="text-3xl font-bold font-mono mb-4"
+                    style={{
+                      color: "#d4a017",
+                      textShadow: "0 0 15px #d4a017",
+                    }}
+                  >
+                    {reward.text}
+                  </motion.p>
+                  <div
+                    className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 mb-3"
+                    style={{
+                      background: "rgba(0,0,20,0.8)",
+                      border: "1px dashed rgba(212,160,23,0.5)",
+                    }}
+                  >
+                    <code
+                      className="text-xl font-bold font-mono tracking-widest"
+                      style={{ color: "#d4a017" }}
+                    >
+                      {reward.coupon}
+                    </code>
+                  </div>
+                  <Button
+                    onClick={handleCopyCoupon}
+                    className="w-full font-bold font-mono"
+                    style={{
+                      background: "linear-gradient(90deg, #0d9488, #d4a017)",
+                      border: "none",
+                    }}
+                    data-ocid="game.copy_coupon.button"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    COPY COUPON CODE
+                  </Button>
+                  {reward.isFree && (
+                    <p className="text-sm mt-3" style={{ color: "#00ffcc" }}>
+                      🎉 You won a FREE ALVRA perfume! Use code{" "}
+                      <strong>FREEALVRA</strong> at checkout.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div
+                  className="rounded-xl p-4 mb-5"
+                  style={{
+                    background: "rgba(255,100,0,0.1)",
+                    border: "1px solid rgba(255,100,0,0.3)",
+                  }}
+                >
+                  <p
+                    className="text-sm font-mono"
+                    style={{ color: "rgba(255,180,100,0.8)" }}
+                  >
+                    Score 500+ to unlock rewards!
+                  </p>
+                  <p
+                    className="text-xs mt-2 font-mono"
+                    style={{ color: "rgba(200,160,255,0.6)" }}
+                  >
+                    500 → ₹20 OFF • 1000 → ₹50 OFF • 3000 → ₹150 OFF
+                  </p>
+                </div>
+              )}
+
+              <Button
+                onClick={startGame}
+                variant="outline"
+                className="w-full font-bold font-mono"
+                style={{
+                  borderColor: "rgba(13,148,136,0.5)",
+                  color: "#0d9488",
+                }}
+                data-ocid="game.play_again.button"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                PLAY AGAIN
+              </Button>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* Controls legend */}
       {!showReward && (
