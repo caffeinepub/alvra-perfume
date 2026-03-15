@@ -5,11 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
+  Banknote,
   CheckCircle2,
+  CreditCard,
   Loader2,
   MessageCircle,
   Package,
   ShoppingBag,
+  Smartphone,
   Sparkles,
   Tag,
 } from "lucide-react";
@@ -55,6 +58,11 @@ const STATIC_PRODUCTS = [
 ];
 
 const ITEM_PRICE = 799;
+const COD_CHARGE = 50;
+const EMI_DISCOUNT = 600; // ₹799 → ₹199
+
+type PaymentMethod = "upi" | "cod" | "emi";
+type EmiPlan = "3" | "6" | "12";
 
 // ─── Checkout Header ──────────────────────────────────────────────────────────
 function CheckoutHeader({
@@ -93,15 +101,23 @@ function OrderSuccess({
   orders,
   totalPaid,
   couponUsed,
+  paymentMethod,
   onNavigate,
 }: {
   orders: Order[];
   totalPaid: number;
   couponUsed: string | null;
+  paymentMethod: PaymentMethod;
   onNavigate: (path: string) => void;
 }) {
   const firstOrderId = orders[0]?.id?.toString() ?? "—";
-  const whatsappMessage = `Hi, I just placed order #${firstOrderId} for ALVRA perfume!`;
+  const methodLabel =
+    paymentMethod === "upi"
+      ? "UPI"
+      : paymentMethod === "cod"
+        ? "Cash on Delivery"
+        : "EMI";
+  const whatsappMessage = `Hi, I just placed order #${firstOrderId} for ALVRA perfume! Payment: ${methodLabel}`;
   const whatsappUrl = `https://wa.me/918787673730?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
@@ -112,7 +128,6 @@ function OrderSuccess({
       data-ocid="checkout.success.panel"
     >
       <div className="bg-card border border-gold-dim rounded-3xl p-8 md:p-12 text-center max-w-lg w-full gold-glow-box">
-        {/* Animated checkmark */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -135,11 +150,20 @@ function OrderSuccess({
           <h2 className="font-luxury text-3xl font-bold text-gold gold-glow mb-2">
             Order Placed!
           </h2>
-          <p className="text-muted-foreground text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-2">
             Thank you for choosing ALVRA. Your order is confirmed!
           </p>
+          <div className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+            {paymentMethod === "upi" ? (
+              <Smartphone className="w-3 h-3" />
+            ) : paymentMethod === "cod" ? (
+              <Package className="w-3 h-3" />
+            ) : (
+              <CreditCard className="w-3 h-3" />
+            )}
+            Payment: {methodLabel}
+          </div>
 
-          {/* Order details */}
           <div className="bg-obsidian-2 border border-border rounded-2xl p-4 mb-6 text-left space-y-2.5">
             {orders.map((order) => (
               <div
@@ -174,7 +198,6 @@ function OrderSuccess({
             You'll receive updates via WhatsApp.
           </p>
 
-          {/* Action buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             <a
               href={whatsappUrl}
@@ -204,6 +227,76 @@ function OrderSuccess({
         </motion.div>
       </div>
     </motion.div>
+  );
+}
+
+// ─── Payment Method Card ──────────────────────────────────────────────────────
+function PaymentCard({
+  selected,
+  onSelect,
+  icon,
+  title,
+  subtitle,
+  dataOcid,
+  children,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  dataOcid: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+        selected
+          ? "border-teal-500 bg-teal-50 shadow-md"
+          : "border-border bg-card hover:border-teal-300"
+      }`}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onSelect();
+      }}
+      data-ocid={dataOcid}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+            selected
+              ? "bg-teal-500 text-white"
+              : "bg-muted text-muted-foreground"
+          }`}
+        >
+          {icon}
+        </div>
+        <div className="flex-1">
+          <p
+            className={`font-bold text-sm ${selected ? "text-teal-700" : "text-foreground"}`}
+          >
+            {title}
+          </p>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        </div>
+        <div
+          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+            selected ? "border-teal-500 bg-teal-500" : "border-border"
+          }`}
+        >
+          {selected && <div className="w-2 h-2 bg-white rounded-full" />}
+        </div>
+      </div>
+      {selected && children && (
+        <div
+          className="mt-4 pt-3 border-t border-teal-200"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          {children}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -237,11 +330,20 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
     return null;
   });
 
+  // Payment
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi");
+  const [upiId, setUpiId] = useState("");
+  const [emiPlan, setEmiPlan] = useState<EmiPlan>("3");
+
   const [isPlacing, setIsPlacing] = useState(false);
   const [completedOrders, setCompletedOrders] = useState<Order[] | null>(null);
 
-  // Errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const savedUpi = localStorage.getItem("alvra_upi_id");
+    if (savedUpi) setUpiId(savedUpi);
+  }, []);
 
   const getProductInfo = (productId: bigint) => {
     const backend = backendProducts.find((p) => p.id === productId);
@@ -261,8 +363,15 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
     return sum + info.price * Number(item.quantity);
   }, 0);
 
-  const discount = appliedCoupon?.discount ?? 0;
-  const total = Math.max(0, subtotal - discount);
+  const couponDiscount = appliedCoupon?.discount ?? 0;
+  const emiDiscount =
+    paymentMethod === "emi" ? EMI_DISCOUNT * cartItems.length : 0;
+  const codSurcharge = paymentMethod === "cod" ? COD_CHARGE : 0;
+  const totalDiscount = couponDiscount + emiDiscount;
+  const total = Math.max(0, subtotal - totalDiscount + codSurcharge);
+
+  const emiMonthly = (months: number, interestRate: number) =>
+    Math.ceil((total * (1 + interestRate)) / months);
 
   const handleApplyCoupon = () => {
     const code = couponInput.trim().toUpperCase();
@@ -292,6 +401,8 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
     if (!pin.trim()) newErrors.pin = "PIN code is required.";
     else if (!/^\d{6}$/.test(pin.trim()))
       newErrors.pin = "Enter a valid 6-digit PIN code.";
+    if (paymentMethod === "upi" && !upiId.trim())
+      newErrors.upiId = "UPI ID is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -305,6 +416,13 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
     setIsPlacing(true);
     try {
       const couponCode = appliedCoupon?.code ?? null;
+      const paymentNote =
+        paymentMethod === "upi"
+          ? `UPI: ${upiId}`
+          : paymentMethod === "cod"
+            ? "Cash on Delivery"
+            : `EMI: ${emiPlan} months`;
+
       const orders = await Promise.all(
         cartItems.map((item) =>
           placeOrder.mutateAsync({
@@ -313,16 +431,14 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
             couponCode,
             customerName: name.trim(),
             customerPhone: phone.trim(),
-            street: street.trim(),
+            street: `${street.trim()} | Payment: ${paymentNote}`,
             city: city.trim(),
             pinCode: pin.trim(),
           }),
         ),
       );
 
-      // Clear cart after success
       await clearCart.mutateAsync();
-
       setCompletedOrders(orders);
     } catch (err) {
       console.error(err);
@@ -413,6 +529,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
             orders={completedOrders}
             totalPaid={total || subtotal}
             couponUsed={appliedCoupon?.code ?? null}
+            paymentMethod={paymentMethod}
             onNavigate={onNavigate}
           />
         </div>
@@ -440,8 +557,9 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* ── Delivery Details Form ── */}
-          <div className="lg:col-span-2">
+          {/* ── Left: Delivery + Payment ── */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Delivery Details */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -454,7 +572,6 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
               </h2>
 
               <div className="space-y-4">
-                {/* Name */}
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground uppercase tracking-wider">
                     Full Name *
@@ -480,7 +597,6 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                   )}
                 </div>
 
-                {/* Phone */}
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground uppercase tracking-wider">
                     Phone Number *
@@ -507,7 +623,6 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                   )}
                 </div>
 
-                {/* Street */}
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground uppercase tracking-wider">
                     Street Address *
@@ -533,7 +648,6 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                   )}
                 </div>
 
-                {/* City & PIN */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -587,7 +701,6 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                   </div>
                 </div>
 
-                {/* Coupon */}
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                     <Tag className="w-3 h-3" />
@@ -649,6 +762,160 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                 </div>
               </div>
             </motion.div>
+
+            {/* ── Payment Method ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-card border border-border rounded-2xl p-6"
+            >
+              <h2 className="font-display text-xl font-bold text-gold mb-5 flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Choose Payment Method
+              </h2>
+
+              <div className="space-y-3">
+                {/* UPI */}
+                <PaymentCard
+                  selected={paymentMethod === "upi"}
+                  onSelect={() => setPaymentMethod("upi")}
+                  icon={<Smartphone className="w-5 h-5" />}
+                  title="UPI Payment"
+                  subtitle="PhonePe, GPay, Paytm & more"
+                  dataOcid="checkout.payment_method.upi.radio"
+                >
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-teal-700">
+                      Enter UPI ID *
+                    </Label>
+                    <Input
+                      value={upiId}
+                      onChange={(e) => {
+                        setUpiId(e.target.value);
+                        if (errors.upiId)
+                          setErrors((prev) => ({ ...prev, upiId: "" }));
+                      }}
+                      placeholder="9876543210@upi or name@okaxis"
+                      className="bg-white border-teal-200 focus:border-teal-500"
+                      data-ocid="checkout.upi_id.input"
+                    />
+                    {errors.upiId && (
+                      <p className="text-xs text-destructive">{errors.upiId}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Supported: PhonePe, Google Pay, Paytm, BHIM, Amazon Pay
+                    </p>
+                  </div>
+                </PaymentCard>
+
+                {/* COD */}
+                <PaymentCard
+                  selected={paymentMethod === "cod"}
+                  onSelect={() => setPaymentMethod("cod")}
+                  icon={<Banknote className="w-5 h-5" />}
+                  title="Cash on Delivery"
+                  subtitle={`Pay when you receive • ₹${COD_CHARGE} COD charges apply`}
+                  dataOcid="checkout.payment_method.cod.radio"
+                >
+                  <div className="flex items-center gap-2 bg-amber-50 rounded-lg px-3 py-2">
+                    <span className="text-amber-500 text-lg">📦</span>
+                    <p className="text-xs text-amber-700">
+                      ₹{COD_CHARGE} COD charge will be added to your total. Keep
+                      exact change ready.
+                    </p>
+                  </div>
+                </PaymentCard>
+
+                {/* EMI */}
+                <PaymentCard
+                  selected={paymentMethod === "emi"}
+                  onSelect={() => setPaymentMethod("emi")}
+                  icon={<CreditCard className="w-5 h-5" />}
+                  title="EMI — Easy Monthly Installments"
+                  subtitle="No-cost EMI on 3 months • Save ₹600!"
+                  dataOcid="checkout.payment_method.emi.radio"
+                >
+                  <div className="space-y-3">
+                    {/* EMI Offer badge */}
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                      <Sparkles className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      <p className="text-xs text-green-700 font-semibold">
+                        EMI Offer Applied: ₹{EMI_DISCOUNT} OFF per item!
+                      </p>
+                    </div>
+
+                    {/* EMI Plan Selector */}
+                    <Label className="text-xs font-semibold text-teal-700">
+                      Select EMI Plan
+                    </Label>
+                    <div
+                      className="grid grid-cols-3 gap-2"
+                      data-ocid="checkout.emi_plan.select"
+                    >
+                      {(
+                        [
+                          { months: "3", rate: 0, label: "No interest" },
+                          { months: "6", rate: 0.05, label: "5% interest" },
+                          { months: "12", rate: 0.1, label: "10% interest" },
+                        ] as const
+                      ).map(({ months, rate, label }) => (
+                        <button
+                          key={months}
+                          type="button"
+                          onClick={() => setEmiPlan(months)}
+                          className={`rounded-lg p-2.5 border-2 text-center transition-all ${
+                            emiPlan === months
+                              ? "border-teal-500 bg-teal-50"
+                              : "border-border hover:border-teal-300"
+                          }`}
+                        >
+                          <p
+                            className={`font-black text-lg ${
+                              emiPlan === months
+                                ? "text-teal-700"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {months}mo
+                          </p>
+                          <p
+                            className={`text-xs font-bold ${
+                              emiPlan === months
+                                ? "text-teal-600"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            ₹{emiMonthly(Number(months), rate)}/mo
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {label}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Banks */}
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">
+                        Available on cards from:
+                      </p>
+                      <div className="flex gap-2 flex-wrap">
+                        {["HDFC", "ICICI", "SBI", "Axis"].map((bank) => (
+                          <Badge
+                            key={bank}
+                            variant="outline"
+                            className="text-xs border-teal-200 text-teal-700 bg-teal-50"
+                          >
+                            {bank}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </PaymentCard>
+              </div>
+            </motion.div>
           </div>
 
           {/* ── Order Summary ── */}
@@ -656,7 +923,7 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.15 }}
               className="bg-card border border-border rounded-2xl p-6 sticky top-24"
             >
               <h2 className="font-display text-xl font-bold text-gold mb-5 flex items-center gap-2">
@@ -664,7 +931,6 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                 Order Summary
               </h2>
 
-              {/* Items list */}
               <div className="space-y-3 mb-5">
                 {cartItems.map((item, index) => {
                   const info = getProductInfo(item.productId);
@@ -702,7 +968,6 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
 
               <Separator className="bg-border mb-4" />
 
-              {/* Price breakdown */}
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
@@ -710,12 +975,31 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                     ₹{subtotal.toLocaleString("en-IN")}
                   </span>
                 </div>
-                {discount > 0 && (
+                {couponDiscount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Discount</span>
-                    <span className="text-green-400">
-                      −₹{discount.toLocaleString("en-IN")}
+                    <span className="text-muted-foreground">
+                      Coupon Discount
                     </span>
+                    <span className="text-green-400">
+                      −₹{couponDiscount.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                )}
+                {emiDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-green-500" />
+                      EMI Offer
+                    </span>
+                    <span className="text-green-400 font-semibold">
+                      −₹{emiDiscount.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                )}
+                {codSurcharge > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">COD Charge</span>
+                    <span className="text-amber-500">+₹{codSurcharge}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
@@ -728,12 +1012,25 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
 
               <Separator className="bg-border mb-4" />
 
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex justify-between items-center mb-4">
                 <span className="font-bold text-foreground">Total</span>
                 <span className="font-luxury text-2xl font-bold text-gold">
                   ₹{total.toLocaleString("en-IN")}
                 </span>
               </div>
+
+              {paymentMethod === "emi" && (
+                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 mb-4 text-center">
+                  <p className="text-xs text-teal-600 font-semibold">
+                    ₹
+                    {emiMonthly(
+                      Number(emiPlan),
+                      emiPlan === "3" ? 0 : emiPlan === "6" ? 0.05 : 0.1,
+                    )}
+                    /month for {emiPlan} months
+                  </p>
+                </div>
+              )}
 
               <Button
                 onClick={handlePlaceOrder}

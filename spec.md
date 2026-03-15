@@ -1,30 +1,32 @@
 # ALVRA Perfume
 
 ## Current State
-- ProductDetailModal shows product image, description, star rating (static), EMI/full price, Buy Now + Add to Cart
-- No size (ml) options on product detail
-- No similar products section
-- No customer feedback / review submission
-- DinoGame has local high score only; no leaderboard
+- Dino game uses dark purple/space color theme (dark bg, neon greens/purples)
+- Game has no sound
+- Game is titled "ALVRA RUNNER" in modal header, play button, and game-over screen
+- Hero carousel has a thumbnail strip just below the slide image with a "Shop Now" button
+- Top scrolling ticker does not include "Free delivery on all orders"
 
 ## Requested Changes (Diff)
 
 ### Add
-- Size selector (100ml / 250ml / 500ml) with per-size pricing in ProductDetailModal
-- "Similar Products" horizontal scroll section inside ProductDetailModal
-- Customer Feedback section in ProductDetailModal: star rating picker + name/text inputs + submit (stored in localStorage)
-- Dino Game Leaderboard: top-10 scores panel below the game, stored in localStorage with player name prompt on new high score
+- Web Audio API sounds in DinoGame: jump sound, collision/death sound, score milestone sound, game-over sound
+- "Free Delivery on All Orders" message to the top scrolling ticker (PromoTicker)
+- "Discount Zone" as a collectible/visual element in the game canvas (glowing teal zone the dino passes through that awards bonus points)
 
 ### Modify
-- ProductDetailModal: widen to accommodate new sections, add tabs or stacked sections
-- DinoGame: on game-over, if score is top-10, prompt for name and save to leaderboard
+- DinoGame color theme: replace dark purple/space colors with website teal/emerald palette. Sky gradient → deep teal-to-dark-teal, ground glow → teal/emerald, speed tier indicators → teal shades, HUD colors → teal/gold matching site branding
+- Replace all "ALVRA RUNNER" text with "DISCOUNT ZONE" (modal header, play button, game-over screen)
+- Remove the thumbnail strip section just below the hero carousel image (lines 1058–1103 in App.tsx) — this is the "show now" section
 
 ### Remove
-- Nothing removed
+- The carousel thumbnail strip (the row of thumbnails + "Shop Now" button below the slide image)
 
 ## Implementation Plan
-1. Add size options state + UI in ProductDetailModal (100ml/250ml/500ml with pricing tiers)
-2. Add SimilarProducts horizontal scroll strip at bottom of ProductDetailModal (shows other products)
-3. Add CustomerFeedback form at bottom of ProductDetailModal (name, rating, text; saves to localStorage)
-4. Add Leaderboard component reading/writing from localStorage; render below DinoGameModal in PlayWin section
-5. Update DinoGame to call a leaderboard save callback when game over with a top-10 score
+1. In App.tsx: remove thumbnail strip block from HeroCarousel (lines ~1058–1103)
+2. In App.tsx: add "🚚 Free Delivery on All Orders" to the PromoTicker items
+3. In DinoGame.tsx: update getBgColor to use teal/emerald gradients instead of purple/dark
+4. In DinoGame.tsx: update ground glow, speed tier, HUD colors to match teal theme
+5. In DinoGame.tsx: replace all "ALVRA RUNNER" text with "DISCOUNT ZONE"
+6. In DinoGame.tsx: add Web Audio API sound effects (jump, collision, game-over, milestone)
+7. In DinoGame.tsx: add a visual "Discount Zone" collectible/obstacle that grants bonus score

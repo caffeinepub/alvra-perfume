@@ -40,7 +40,7 @@ interface Obstacle {
   y: number;
   width: number;
   height: number;
-  type: "perfume" | "coin" | "double_perfume" | "fast_coin";
+  type: "perfume" | "bird" | "double_perfume" | "fast_bird";
   speedMultiplier: number;
   birdHeight?: "low" | "mid" | "high";
 }
@@ -85,6 +85,10 @@ interface GameState {
   starOffset: number;
   clouds: { x: number; y: number; w: number; speed: number }[];
   showLifeLostText: number;
+  discountZones: { x: number; width: number; collected: boolean }[];
+  nextDiscountZoneIn: number;
+  bonusTexts: { x: number; y: number; text: string; life: number }[];
+  lastMilestone: number;
 }
 
 // ─── Reward logic ─────────────────────────────────────────────────────────────
@@ -106,28 +110,28 @@ function getReward(
 }
 
 function getSpeedTier(speed: number): { label: string; color: string } {
-  if (speed < 9) return { label: "SLOW", color: "#00ff88" };
-  if (speed < 14) return { label: "FAST", color: "#ffcc00" };
-  if (speed < 20) return { label: "HYPER", color: "#ff6600" };
-  return { label: "ULTRA", color: "#ff0066" };
+  if (speed < 9) return { label: "SLOW", color: "#99f6e4" };
+  if (speed < 14) return { label: "FAST", color: "#2dd4bf" };
+  if (speed < 20) return { label: "HYPER", color: "#0d9488" };
+  return { label: "ULTRA", color: "#134e4a" };
 }
 
 // ─── Canvas drawing helpers ───────────────────────────────────────────────────
 
 function getBgColor(score: number): { top: string; bottom: string } {
   if (score < 500) {
-    return { top: "#0a0020", bottom: "#10003a" };
+    return { top: "#0a2a2a", bottom: "#0d3b3b" };
   }
   if (score < 1500) {
-    return { top: "#1a0040", bottom: "#200050" };
+    return { top: "#0d4040", bottom: "#0f5050" };
   }
   if (score < 3000) {
-    return { top: "#2a0035", bottom: "#3a0020" };
+    return { top: "#0f5555", bottom: "#0d9488" };
   }
   if (score < 5000) {
-    return { top: "#3a0010", bottom: "#500010" };
+    return { top: "#0d9488", bottom: "#14b8a6" };
   }
-  return { top: "#4a0000", bottom: "#200020" };
+  return { top: "#134e4a", bottom: "#0d9488" };
 }
 
 function drawBackground(
@@ -153,7 +157,7 @@ function drawBackground(
     ctx.fillRect(sx, sy, size, size);
   }
 
-  ctx.fillStyle = "rgba(200, 180, 255, 0.5)";
+  ctx.fillStyle = "rgba(180, 230, 225, 0.5)";
   for (let i = 0; i < 25; i++) {
     const sx = ((i * 211 + starOffset * 0.7) % (canvasW + 20)) - 10;
     const sy = (i * 53 + 15) % (canvasH * 0.55);
@@ -162,7 +166,7 @@ function drawBackground(
 
   for (const cloud of clouds) {
     const alpha = 0.06 + (score / 20000) * 0.04;
-    ctx.fillStyle = `rgba(150, 80, 255, ${alpha})`;
+    ctx.fillStyle = `rgba(45, 212, 191, ${alpha})`;
     ctx.beginPath();
     ctx.ellipse(cloud.x, cloud.y, cloud.w, cloud.w * 0.4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -177,7 +181,7 @@ function drawGround(
   score: number,
 ) {
   const glowColor =
-    score < 3000 ? "#00ff88" : score < 6000 ? "#ffcc00" : "#ff3366";
+    score < 3000 ? "#2dd4bf" : score < 6000 ? "#14b8a6" : "#0d9488";
 
   ctx.shadowBlur = 8;
   ctx.shadowColor = glowColor;
@@ -197,7 +201,8 @@ function drawGround(
   }
 }
 
-// ─── Elegant Runner Character (ALVRA brand person) ────────────────────────────
+// ─── Pixel-Art Dino Character ────────────────────────────────────────────────
+// Draws a cute pixel-art T-Rex dinosaur using canvas primitives (no image needed)
 function drawDino(
   ctx: CanvasRenderingContext2D,
   dino: Dino,
@@ -205,243 +210,112 @@ function drawDino(
 ) {
   if (dino.flashTimer > 0 && Math.floor(dino.flashTimer / 4) % 2 === 0) return;
 
-  const x = dino.x;
-  const y = dino.y;
+  const x = Math.round(dino.x);
+  const y = Math.round(dino.y);
   const w = dino.width;
   const h = dino.height;
-  const frame = Math.floor(timestamp / 80) % 4;
+  const isDucking = dino.isDucking;
 
-  // Glow aura
+  // Glow aura when invincible
   if (dino.invincible > 0) {
     ctx.shadowBlur = 18;
     ctx.shadowColor = "#00ffff";
   } else {
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = "#0d9488";
+    ctx.shadowBlur = 0;
   }
 
-  if (dino.isDucking) {
-    // ── Crouching pose ──────────────────────────────────────────────────────
-    // Body / coat crouched
-    ctx.fillStyle = "#0d9488";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.15, y + h * 0.35, w * 0.65, h * 0.55, 4);
-    ctx.fill();
+  // Pixel size relative to dino dimensions (dino is ~40x48 pixels)
+  const px = Math.max(2, Math.round(w / 10));
 
-    // Head
-    ctx.fillStyle = "#f5c5a3";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.62, y + h * 0.22, w * 0.22, 0, Math.PI * 2);
-    ctx.fill();
+  // Color palette
+  const GREEN = "#4ade80"; // main body
+  const DKGREEN = "#16a34a"; // dark outline / shadow
+  const LTGREEN = "#86efac"; // highlight
+  const WHITE = "#ffffff"; // eye white
+  const BLACK = "#0f172a"; // pupil / outline
+  const ORANGE = "#fb923c"; // belly
+  const YLLOW = "#fde047"; // claws / horns
 
-    // Hair bun
-    ctx.fillStyle = "#4a2c0a";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.62, y + h * 0.06, w * 0.14, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Eye
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = "#ffffff";
-    ctx.fillStyle = "#1a1a2e";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.71, y + h * 0.2, w * 0.05, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Arm holding perfume bottle
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = "#0d9488";
-    ctx.fillStyle = "#0a7a70";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.75, y + h * 0.38, w * 0.18, h * 0.32, 3);
-    ctx.fill();
-
-    // Mini perfume bottle in hand
-    ctx.fillStyle = "#d4a017";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.88, y + h * 0.3, w * 0.12, h * 0.08, 2);
-    ctx.fill();
-    ctx.fillStyle = "#6b21a8";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.85, y + h * 0.37, w * 0.16, h * 0.28, 3);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,0.3)";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.87, y + h * 0.4, w * 0.05, h * 0.1, 1);
-    ctx.fill();
-
-    // Legs crouched
-    ctx.fillStyle = "#0a5c53";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.2, y + h * 0.78, w * 0.2, h * 0.22, 3);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.5, y + h * 0.78, w * 0.2, h * 0.22, 3);
-    ctx.fill();
-    // Shoes
-    ctx.fillStyle = "#d4a017";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.14, y + h * 0.92, w * 0.3, h * 0.1, 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.44, y + h * 0.92, w * 0.3, h * 0.1, 2);
-    ctx.fill();
-  } else {
-    // ── Standing / running pose ──────────────────────────────────────────────
-    // Legs (animated 4-frame)
-    const legOffsets = [
-      [0, h * 0.13],
-      [h * 0.09, h * 0.04],
-      [h * 0.13, 0],
-      [h * 0.04, h * 0.09],
-    ];
-    const [l1, l2] = legOffsets[frame];
-
-    // Legs
-    ctx.fillStyle = "#0a5c53";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.2, y + h * 0.72, w * 0.2, h * 0.22 + l1, 3);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.5, y + h * 0.72, w * 0.2, h * 0.22 + l2, 3);
-    ctx.fill();
-    // Shoes
-    ctx.fillStyle = "#d4a017";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.12, y + h + l1 - h * 0.05, w * 0.32, h * 0.08, 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.42, y + h + l2 - h * 0.05, w * 0.32, h * 0.08, 2);
-    ctx.fill();
-
-    // Coat/body
-    ctx.fillStyle = "#0d9488";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.1, y + h * 0.28, w * 0.68, h * 0.5, 5);
-    ctx.fill();
-
-    // Coat lapels
-    ctx.fillStyle = "#0a7a70";
-    ctx.beginPath();
-    ctx.moveTo(x + w * 0.35, y + h * 0.28);
-    ctx.lineTo(x + w * 0.48, y + h * 0.52);
-    ctx.lineTo(x + w * 0.25, y + h * 0.52);
-    ctx.closePath();
-    ctx.fill();
-
-    // Gold button row
-    ctx.fillStyle = "#d4a017";
-    for (let i = 0; i < 3; i++) {
-      ctx.beginPath();
-      ctx.arc(
-        x + w * 0.44,
-        y + h * (0.35 + i * 0.11),
-        w * 0.04,
-        0,
-        Math.PI * 2,
+  // Helper: draw a pixel block
+  const p = (col: number, row: number, color: string, cols = 1, rows = 1) => {
+    ctx.fillStyle = color;
+    if (!isDucking) {
+      ctx.fillRect(x + col * px, y + row * px, px * cols, px * rows);
+    } else {
+      // Duck: squish vertically (0.6x height), shift down
+      const duckOffY = h * 0.38;
+      ctx.fillRect(
+        x + col * px,
+        y + duckOffY + row * px * 0.6,
+        px * cols,
+        px * rows * 0.6,
       );
-      ctx.fill();
     }
+  };
 
-    // Back arm
-    ctx.fillStyle = "#0a6b62";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.06, y + h * 0.3, w * 0.16, h * 0.35, 3);
-    ctx.fill();
+  // Animation frame (leg cycle)
+  const frame = Math.floor(timestamp / 120) % 2;
 
-    // Neck
-    ctx.fillStyle = "#f5c5a3";
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.38, y + h * 0.18, w * 0.16, h * 0.14, 3);
-    ctx.fill();
+  // ── Head ──
+  p(5, 0, DKGREEN, 4, 1); // head top outline
+  p(4, 1, DKGREEN, 1, 2); // head left outline
+  p(5, 1, GREEN, 3, 2); // head fill
+  p(8, 1, DKGREEN, 1, 2); // head right outline
+  p(9, 1, GREEN, 1, 1); // snout extension
+  p(9, 2, DKGREEN, 1, 1); // snout bottom
+  // nostril
+  p(8, 1, DKGREEN, 1, 1);
+  // eye white
+  p(5, 1, WHITE, 2, 1);
+  // pupil
+  p(6, 1, BLACK, 1, 1);
+  // horn/ridge
+  p(6, 0, YLLOW, 1, 1);
 
-    // Head
-    ctx.fillStyle = "#f5c5a3";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.48, y + h * 0.12, w * 0.25, 0, Math.PI * 2);
-    ctx.fill();
+  // ── Neck ──
+  p(5, 3, DKGREEN, 1, 2);
+  p(6, 3, GREEN, 2, 2);
+  p(8, 3, DKGREEN, 1, 2);
 
-    // Hair bun
-    ctx.fillStyle = "#4a2c0a";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.48, y - h * 0.03, w * 0.18, 0, Math.PI * 2);
-    ctx.fill();
-    // Hair strand
-    ctx.beginPath();
-    ctx.arc(x + w * 0.65, y + h * 0.04, w * 0.1, 0, Math.PI * 2);
-    ctx.fill();
+  // ── Body ──
+  p(3, 5, DKGREEN, 1, 4); // left outline
+  p(4, 5, GREEN, 4, 4); // body fill left
+  p(8, 5, LTGREEN, 1, 2); // highlight
+  p(4, 6, ORANGE, 2, 2); // belly
+  p(8, 5, DKGREEN, 1, 4); // right outline
 
-    // Eye
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = "#ffffff";
-    ctx.fillStyle = "#1a1a2e";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.57, y + h * 0.1, w * 0.055, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.555, y + h * 0.09, w * 0.022, 0, Math.PI * 2);
-    ctx.fill();
+  // ── Tail ──
+  p(2, 6, DKGREEN, 1, 2);
+  p(1, 7, DKGREEN, 2, 1);
+  p(2, 7, GREEN, 1, 1);
+  p(0, 8, DKGREEN, 1, 1);
 
-    // Front arm holding perfume
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = "#0d9488";
-    ctx.fillStyle = "#0d9488";
-    // Arm angled forward
-    const armY = frame < 2 ? y + h * 0.3 : y + h * 0.34;
-    ctx.beginPath();
-    ctx.roundRect(x + w * 0.72, armY, w * 0.18, h * 0.32, 3);
-    ctx.fill();
-    // Hand
-    ctx.fillStyle = "#f5c5a3";
-    ctx.beginPath();
-    ctx.arc(x + w * 0.82, armY + h * 0.32, w * 0.07, 0, Math.PI * 2);
-    ctx.fill();
+  // ── Arm ──
+  p(7, 5, GREEN, 1, 1);
+  p(8, 5, DKGREEN, 1, 1);
+  p(7, 6, YLLOW, 1, 1); // claw
 
-    // Perfume bottle in hand
-    const bottleX = x + w * 0.88;
-    const bottleY = armY + h * 0.18;
-    // Cap
-    ctx.fillStyle = "#d4a017";
-    ctx.shadowBlur = 5;
-    ctx.shadowColor = "#d4a017";
-    ctx.beginPath();
-    ctx.roundRect(bottleX, bottleY, w * 0.14, h * 0.06, 2);
-    ctx.fill();
-    // Neck
-    ctx.fillStyle = "#9333ea";
-    ctx.beginPath();
-    ctx.roundRect(
-      bottleX + w * 0.04,
-      bottleY + h * 0.06,
-      w * 0.06,
-      h * 0.06,
-      1,
-    );
-    ctx.fill();
-    // Bottle body
-    ctx.fillStyle = "#6b21a8";
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = "#c084fc";
-    ctx.beginPath();
-    ctx.roundRect(bottleX, bottleY + h * 0.12, w * 0.14, h * 0.22, 3);
-    ctx.fill();
-    // Label
-    ctx.fillStyle = "rgba(255,255,255,0.25)";
-    ctx.beginPath();
-    ctx.roundRect(bottleX + w * 0.02, bottleY + h * 0.16, w * 0.1, h * 0.1, 1);
-    ctx.fill();
-    // Shine
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-    ctx.beginPath();
-    ctx.roundRect(
-      bottleX + w * 0.02,
-      bottleY + h * 0.13,
-      w * 0.03,
-      h * 0.08,
-      1,
-    );
-    ctx.fill();
+  // ── Legs (animated) ──
+  if (frame === 0) {
+    // Leg A forward, Leg B back
+    p(4, 9, DKGREEN, 2, 1);
+    p(4, 10, GREEN, 1, 1);
+    p(3, 10, DKGREEN, 1, 1);
+    p(3, 11, YLLOW, 2, 1); // front foot
+
+    p(6, 9, DKGREEN, 2, 1);
+    p(7, 10, GREEN, 1, 1);
+    p(7, 11, YLLOW, 1, 1); // back foot
+  } else {
+    // Legs swap
+    p(4, 9, DKGREEN, 2, 1);
+    p(5, 10, GREEN, 1, 1);
+    p(5, 11, YLLOW, 1, 1);
+
+    p(6, 9, DKGREEN, 2, 1);
+    p(6, 10, GREEN, 1, 1);
+    p(5, 10, DKGREEN, 1, 1);
+    p(5, 11, YLLOW, 2, 1);
   }
 
   ctx.shadowBlur = 0;
@@ -451,123 +325,181 @@ function drawDino(
 function drawObstacle(ctx: CanvasRenderingContext2D, obs: Obstacle) {
   const { x, y, width: w, height: h, type } = obs;
 
-  if (type === "coin") {
-    // Flying gold coin (like a bird) at different heights
-    const spinFrame = Math.floor(Date.now() / 100) % 4;
-    const scaleX = [1, 0.6, 0.15, 0.6][spinFrame];
-    ctx.shadowBlur = 16;
-    ctx.shadowColor = "#fbbf24";
+  if (type === "bird") {
+    // Pixel-art bird flying at height
+    const wingFrame = Math.floor(Date.now() / 150) % 2;
+    const cx = x + w * 0.5;
+    const cy = y + h * 0.5;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = "#38bdf8";
 
-    // Coin body (ellipse to simulate spin)
-    ctx.fillStyle = "#f59e0b";
+    // Body
+    ctx.fillStyle = "#374151";
     ctx.beginPath();
-    ctx.ellipse(
-      x + w * 0.5,
-      y + h * 0.5,
-      w * 0.45 * scaleX,
-      h * 0.45,
-      0,
-      0,
-      Math.PI * 2,
-    );
+    ctx.ellipse(cx, cy, w * 0.38, h * 0.28, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    if (scaleX > 0.4) {
-      // Gold rim
-      ctx.strokeStyle = "#d4a017";
-      ctx.lineWidth = 2;
+    // Wings
+    ctx.strokeStyle = "#1f2937";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    if (wingFrame === 0) {
+      // Wings up
       ctx.beginPath();
-      ctx.ellipse(
-        x + w * 0.5,
-        y + h * 0.5,
-        w * 0.45 * scaleX,
-        h * 0.45,
-        0,
-        0,
-        Math.PI * 2,
+      ctx.moveTo(cx - w * 0.15, cy - h * 0.05);
+      ctx.quadraticCurveTo(
+        cx - w * 0.45,
+        cy - h * 0.55,
+        cx - w * 0.7,
+        cy - h * 0.35,
       );
       ctx.stroke();
-
-      // ₹ symbol
-      ctx.fillStyle = "#7c3f00";
-      ctx.font = `bold ${Math.round(h * 0.45)}px monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("₹", x + w * 0.5, y + h * 0.52);
-      ctx.textBaseline = "alphabetic";
-
-      // Shine streak
-      ctx.fillStyle = "rgba(255,255,255,0.4)";
       ctx.beginPath();
-      ctx.ellipse(
-        x + w * 0.35,
-        y + h * 0.3,
-        w * 0.12 * scaleX,
-        h * 0.1,
-        -0.4,
-        0,
-        Math.PI * 2,
+      ctx.moveTo(cx + w * 0.15, cy - h * 0.05);
+      ctx.quadraticCurveTo(
+        cx + w * 0.45,
+        cy - h * 0.55,
+        cx + w * 0.7,
+        cy - h * 0.35,
       );
-      ctx.fill();
+      ctx.stroke();
+    } else {
+      // Wings down
+      ctx.beginPath();
+      ctx.moveTo(cx - w * 0.15, cy + h * 0.05);
+      ctx.quadraticCurveTo(
+        cx - w * 0.45,
+        cy + h * 0.35,
+        cx - w * 0.7,
+        cy + h * 0.2,
+      );
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + w * 0.15, cy + h * 0.05);
+      ctx.quadraticCurveTo(
+        cx + w * 0.45,
+        cy + h * 0.35,
+        cx + w * 0.7,
+        cy + h * 0.2,
+      );
+      ctx.stroke();
     }
+
+    // Beak (orange triangle pointing right)
+    ctx.fillStyle = "#f97316";
+    ctx.beginPath();
+    ctx.moveTo(cx + w * 0.38, cy);
+    ctx.lineTo(cx + w * 0.22, cy - h * 0.12);
+    ctx.lineTo(cx + w * 0.22, cy + h * 0.12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(cx + w * 0.18, cy - h * 0.1, w * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#111827";
+    ctx.beginPath();
+    ctx.arc(cx + w * 0.21, cy - h * 0.1, w * 0.045, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.shadowBlur = 0;
     return;
   }
 
-  if (type === "fast_coin") {
-    // Fast spinning small gold coin
-    const spinFrame = Math.floor(Date.now() / 70) % 4;
-    const scaleX = [1, 0.5, 0.08, 0.5][spinFrame];
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = "#fbbf24";
+  if (type === "fast_bird") {
+    // Fast smaller bird with red tint - danger!
+    const wingFrame = Math.floor(Date.now() / 80) % 2;
+    const cx = x + w * 0.5;
+    const cy = y + h * 0.5;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = "#ef4444";
 
-    // Outer ring
-    ctx.strokeStyle = "#d4a017";
-    ctx.lineWidth = 3;
+    // Body - smaller, red-tinted
+    ctx.fillStyle = "#1f2937";
     ctx.beginPath();
-    ctx.ellipse(
-      x + w * 0.5,
-      y + h * 0.5,
-      w * 0.45 * scaleX,
-      h * 0.45,
-      0,
-      0,
-      Math.PI * 2,
-    );
-    ctx.stroke();
-
-    // Coin body
-    ctx.fillStyle = "#fbbf24";
+    ctx.ellipse(cx, cy, w * 0.36, h * 0.26, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Red tint overlay
+    ctx.fillStyle = "rgba(239,68,68,0.35)";
     ctx.beginPath();
-    ctx.ellipse(
-      x + w * 0.5,
-      y + h * 0.5,
-      w * 0.4 * scaleX,
-      h * 0.4,
-      0,
-      0,
-      Math.PI * 2,
-    );
+    ctx.ellipse(cx, cy, w * 0.36, h * 0.26, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    if (scaleX > 0.3) {
-      ctx.fillStyle = "#92400e";
-      ctx.font = `bold ${Math.round(h * 0.4)}px monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("₹", x + w * 0.5, y + h * 0.52);
-      ctx.textBaseline = "alphabetic";
-
-      // Speed streaks
-      ctx.strokeStyle = "rgba(251,191,36,0.5)";
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < 3; i++) {
-        ctx.beginPath();
-        ctx.moveTo(x + w + 4 + i * 8, y + h * (0.3 + i * 0.15));
-        ctx.lineTo(x + w + 18 + i * 8, y + h * (0.3 + i * 0.15));
-        ctx.stroke();
-      }
+    // Wings - fast flapping
+    ctx.strokeStyle = "#7f1d1d";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    if (wingFrame === 0) {
+      ctx.beginPath();
+      ctx.moveTo(cx - w * 0.12, cy - h * 0.05);
+      ctx.quadraticCurveTo(
+        cx - w * 0.42,
+        cy - h * 0.52,
+        cx - w * 0.65,
+        cy - h * 0.3,
+      );
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + w * 0.12, cy - h * 0.05);
+      ctx.quadraticCurveTo(
+        cx + w * 0.42,
+        cy - h * 0.52,
+        cx + w * 0.65,
+        cy - h * 0.3,
+      );
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(cx - w * 0.12, cy + h * 0.05);
+      ctx.quadraticCurveTo(
+        cx - w * 0.42,
+        cy + h * 0.32,
+        cx - w * 0.65,
+        cy + h * 0.18,
+      );
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + w * 0.12, cy + h * 0.05);
+      ctx.quadraticCurveTo(
+        cx + w * 0.42,
+        cy + h * 0.32,
+        cx + w * 0.65,
+        cy + h * 0.18,
+      );
+      ctx.stroke();
     }
+
+    // Red beak
+    ctx.fillStyle = "#ef4444";
+    ctx.beginPath();
+    ctx.moveTo(cx + w * 0.36, cy);
+    ctx.lineTo(cx + w * 0.2, cy - h * 0.1);
+    ctx.lineTo(cx + w * 0.2, cy + h * 0.1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(cx + w * 0.16, cy - h * 0.1, w * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ef4444";
+    ctx.beginPath();
+    ctx.arc(cx + w * 0.19, cy - h * 0.1, w * 0.04, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Speed streaks
+    ctx.strokeStyle = "rgba(239,68,68,0.5)";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x - 8 - i * 9, y + h * (0.25 + i * 0.18));
+      ctx.lineTo(x - 22 - i * 9, y + h * (0.25 + i * 0.18));
+      ctx.stroke();
+    }
+
     ctx.shadowBlur = 0;
     return;
   }
@@ -1080,6 +1012,106 @@ const CONFETTI_PARTICLES = [
   },
 ] as const;
 
+// ─── Web Audio Sound Effects ──────────────────────────────────────────────────
+let _audioCtx: AudioContext | null = null;
+function getAudioCtx(): AudioContext {
+  if (!_audioCtx) {
+    _audioCtx = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
+  }
+  return _audioCtx;
+}
+
+function playJumpSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  } catch {}
+}
+
+function playHitSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(300, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch {}
+}
+
+function playGameOverSound() {
+  try {
+    const ctx = getAudioCtx();
+    const notes = [400, 320, 240];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + i * 0.12 + 0.1,
+      );
+      osc.start(ctx.currentTime + i * 0.12);
+      osc.stop(ctx.currentTime + i * 0.12 + 0.12);
+    });
+  } catch {}
+}
+
+function playMilestoneSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(660, ctx.currentTime);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.12);
+  } catch {}
+}
+
+function playCollectSound() {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.1);
+  } catch {}
+}
+
 // ─── DinoGame Component ───────────────────────────────────────────────────────
 export function DinoGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1088,7 +1120,6 @@ export function DinoGame() {
   const lastTimeRef = useRef<number>(0);
   const isDuckingRef = useRef<boolean>(false);
   const touchStartRef = useRef<number>(0);
-
   const [showReward, setShowReward] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
@@ -1170,6 +1201,10 @@ export function DinoGame() {
       clouds,
       speedLines,
       showLifeLostText: 0,
+      discountZones: [],
+      nextDiscountZoneIn: 1500 + Math.random() * 500,
+      bonusTexts: [],
+      lastMilestone: 0,
     };
   }, [GROUND_Y]);
 
@@ -1190,12 +1225,14 @@ export function DinoGame() {
     }
 
     if (gs.dino.isOnGround) {
+      playJumpSound();
       gs.dino.velocityY = JUMP_FORCE;
       gs.dino.isOnGround = false;
       gs.dino.jumpCount = 1;
       gs.doubleJumpAvailable = true;
       setDoubleJumpAvailable(true);
     } else if (gs.dino.jumpCount === 1 && gs.doubleJumpAvailable) {
+      playJumpSound();
       gs.dino.velocityY = DOUBLE_JUMP_FORCE;
       gs.dino.jumpCount = 2;
       gs.doubleJumpAvailable = false;
@@ -1369,11 +1406,11 @@ export function DinoGame() {
       gs.nextObstacleIn -= dt;
       if (gs.nextObstacleIn <= 0) {
         // More frequent obstacles
-        const minGap = Math.max(12, 40 - gs.score / 60);
+        const minGap = Math.max(8, 35 - gs.score / 50);
         gs.nextObstacleIn = minGap + Math.random() * 28;
 
         const roll = Math.random();
-        if (gs.score > 600 && roll < 0.22) {
+        if (gs.score > 400 && roll < 0.22) {
           // Fast coin
           const cH = 28 + Math.random() * 12;
           gs.obstacles.push({
@@ -1381,7 +1418,7 @@ export function DinoGame() {
             y: GROUND_Y - cH,
             width: 28,
             height: cH,
-            type: "fast_coin",
+            type: "fast_bird",
             speedMultiplier: 1.8,
           });
         } else if (gs.score > 400 && roll < 0.4) {
@@ -1395,7 +1432,7 @@ export function DinoGame() {
             type: "double_perfume",
             speedMultiplier: 1,
           });
-        } else if (gs.score > 200 && roll < 0.55) {
+        } else if (gs.score > 100 && roll < 0.55) {
           // Flying coin at varying heights
           const birdRoll = Math.random();
           let coinY: number;
@@ -1411,7 +1448,7 @@ export function DinoGame() {
             y: coinY,
             width: 40,
             height: 40,
-            type: "coin",
+            type: "bird",
             speedMultiplier: 1.1,
           });
         } else {
@@ -1464,6 +1501,8 @@ export function DinoGame() {
             setLives(gs.lives);
             obs.x = -200;
           } else {
+            playHitSound();
+            setTimeout(() => playGameOverSound(), 350);
             gs.gameOver = true;
             setFinalScore(gs.score);
             if (gs.score > highScore) {
@@ -1504,6 +1543,57 @@ export function DinoGame() {
         }
       }
 
+      // Milestone sound
+      const currentMilestone = Math.floor(gs.score / 100);
+      if (currentMilestone > gs.lastMilestone) {
+        gs.lastMilestone = currentMilestone;
+        playMilestoneSound();
+      }
+
+      // Spawn discount zones
+      if (gs.score > 200) {
+        gs.nextDiscountZoneIn -= dt;
+        if (gs.nextDiscountZoneIn <= 0) {
+          gs.nextDiscountZoneIn = 1500 + Math.random() * 500;
+          gs.discountZones.push({
+            x: CANVAS_W + 20,
+            width: 80,
+            collected: false,
+          });
+        }
+      }
+
+      // Update discount zones
+      for (const dz of gs.discountZones) {
+        dz.x -= gs.speed * dt;
+        // Check collision with dino
+        if (
+          !dz.collected &&
+          gs.dino.x + gs.dino.width > dz.x &&
+          gs.dino.x < dz.x + dz.width &&
+          gs.dino.y + gs.dino.height > GROUND_Y - 60 &&
+          gs.dino.y < GROUND_Y
+        ) {
+          dz.collected = true;
+          gs.score += 50;
+          gs.bonusTexts.push({
+            x: dz.x + dz.width / 2,
+            y: GROUND_Y - 40,
+            text: "+50 BONUS!",
+            life: 60,
+          });
+          playCollectSound();
+        }
+      }
+      gs.discountZones = gs.discountZones.filter((dz) => dz.x + dz.width > -20);
+
+      // Update bonus texts
+      for (const bt of gs.bonusTexts) {
+        bt.y -= 0.8;
+        bt.life -= dt;
+      }
+      gs.bonusTexts = gs.bonusTexts.filter((bt) => bt.life > 0);
+
       if (gs.frameCount % 4 < dt) {
         setDisplayScore(gs.score);
         setSpeedTier(getSpeedTier(gs.speed));
@@ -1534,6 +1624,49 @@ export function DinoGame() {
       drawSpeedLines(ctx, gs.speedLines, gs.speed);
       drawGround(ctx, CANVAS_W, GROUND_Y, gs.bgOffset, gs.score);
 
+      // Draw discount zones
+      for (const dz of gs.discountZones) {
+        if (dz.collected) continue;
+        const zoneGrad = ctx.createLinearGradient(
+          dz.x,
+          GROUND_Y - 60,
+          dz.x,
+          GROUND_Y,
+        );
+        zoneGrad.addColorStop(0, "rgba(45,212,191,0.15)");
+        zoneGrad.addColorStop(1, "rgba(13,148,136,0.3)");
+        ctx.fillStyle = zoneGrad;
+        ctx.fillRect(dz.x, GROUND_Y - 60, dz.width, 60);
+        ctx.strokeStyle = "#2dd4bf";
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#2dd4bf";
+        ctx.strokeRect(dz.x, GROUND_Y - 60, dz.width, 60);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#5eead4";
+        ctx.font = "bold 9px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("DISCOUNT", dz.x + dz.width / 2, GROUND_Y - 38);
+        ctx.fillText("ZONE", dz.x + dz.width / 2, GROUND_Y - 26);
+        ctx.fillStyle = "#f0fdfa";
+        ctx.font = "bold 14px monospace";
+        ctx.fillText("+50", dz.x + dz.width / 2, GROUND_Y - 10);
+      }
+
+      // Draw bonus texts
+      for (const bt of gs.bonusTexts) {
+        const alpha = Math.min(bt.life / 30, 1);
+        ctx.globalAlpha = alpha;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#2dd4bf";
+        ctx.fillStyle = "#5eead4";
+        ctx.font = "bold 16px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(bt.text, bt.x, bt.y);
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+      }
+
       for (const o of gs.obstacles) {
         drawObstacle(ctx, o);
       }
@@ -1543,15 +1676,15 @@ export function DinoGame() {
 
       // HUD score
       ctx.shadowBlur = 12;
-      ctx.shadowColor = "#ffcc44";
-      ctx.fillStyle = "#ffcc44";
+      ctx.shadowColor = "#2dd4bf";
+      ctx.fillStyle = "#2dd4bf";
       ctx.font = "bold 22px monospace";
       ctx.textAlign = "right";
       ctx.fillText(gs.score.toString(), CANVAS_W - 16, 32);
       ctx.shadowBlur = 0;
 
       if (highScore > 0) {
-        ctx.fillStyle = "rgba(255,200,100,0.4)";
+        ctx.fillStyle = "rgba(45,212,191,0.4)";
         ctx.font = "11px monospace";
         ctx.textAlign = "right";
         ctx.fillText(`HI: ${highScore}`, CANVAS_W - 16, 50);
@@ -1559,8 +1692,8 @@ export function DinoGame() {
 
       if (gs.comboMultiplier > 1.05) {
         ctx.shadowBlur = 8;
-        ctx.shadowColor = "#00ffff";
-        ctx.fillStyle = "#00ffff";
+        ctx.shadowColor = "#5eead4";
+        ctx.fillStyle = "#5eead4";
         ctx.font = "bold 13px monospace";
         ctx.textAlign = "left";
         ctx.fillText(`×${gs.comboMultiplier.toFixed(1)} COMBO`, 12, 32);
@@ -1597,7 +1730,7 @@ export function DinoGame() {
     setLives(2);
     setDoubleJumpAvailable(true);
     setIsNewHighScore(false);
-    setSpeedTier({ label: "SLOW", color: "#00ff88" });
+    setSpeedTier({ label: "SLOW", color: "#99f6e4" });
     isDuckingRef.current = false;
     lastTimeRef.current = performance.now();
     cancelAnimationFrame(rafRef.current);
@@ -1855,19 +1988,19 @@ export function DinoGame() {
                   fontFamily: "monospace",
                 }}
               >
-                {reward?.isFree ? "LEGENDARY!" : "ALVRA RUNNER"}
+                {reward?.isFree ? "LEGENDARY!" : "DISCOUNT ZONE"}
               </h3>
 
               <p
                 className="text-sm mb-4"
-                style={{ color: "rgba(200,160,255,0.7)" }}
+                style={{ color: "rgba(94,234,212,0.7)" }}
               >
                 Your Score
               </p>
 
               <motion.div
                 className="text-5xl font-bold mb-6 font-mono"
-                style={{ color: "#cc88ff", textShadow: "0 0 20px #cc88ff" }}
+                style={{ color: "#2dd4bf", textShadow: "0 0 20px #2dd4bf" }}
               >
                 {animatedScore.toLocaleString()}
               </motion.div>
@@ -1876,13 +2009,13 @@ export function DinoGame() {
                 <div
                   className="rounded-xl p-5 mb-5"
                   style={{
-                    background: "rgba(150,80,255,0.1)",
-                    border: "1px solid rgba(150,80,255,0.3)",
+                    background: "rgba(13,148,136,0.1)",
+                    border: "1px solid rgba(13,148,136,0.3)",
                   }}
                 >
                   <p
                     className="text-xs font-mono mb-1"
-                    style={{ color: "rgba(200,160,255,0.6)" }}
+                    style={{ color: "rgba(94,234,212,0.6)" }}
                   >
                     YOUR REWARD
                   </p>
@@ -2040,7 +2173,7 @@ export function DinoGameModal() {
         data-ocid="game.play_button"
       >
         <Gamepad2 className="w-5 h-5 mr-2" />
-        PLAY ALVRA RUNNER
+        PLAY DISCOUNT ZONE
       </Button>
 
       <AnimatePresence>
@@ -2050,7 +2183,7 @@ export function DinoGameModal() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,10,0.95)" }}
+            style={{ background: "rgba(0,15,15,0.97)" }}
             data-ocid="game.modal"
           >
             <motion.div
@@ -2059,9 +2192,9 @@ export function DinoGameModal() {
               exit={{ scale: 0.9, y: 30 }}
               className="relative w-full max-w-3xl rounded-2xl overflow-hidden"
               style={{
-                background: "#050015",
-                border: "1px solid rgba(13,148,136,0.4)",
-                boxShadow: "0 0 60px rgba(13,148,136,0.2)",
+                background: "#051a1a",
+                border: "1px solid rgba(45,212,191,0.5)",
+                boxShadow: "0 0 60px rgba(45,212,191,0.25)",
               }}
             >
               <div
@@ -2080,7 +2213,7 @@ export function DinoGameModal() {
                       textShadow: "0 0 15px #0d9488",
                     }}
                   >
-                    🏃 ALVRA RUNNER
+                    🎯 DISCOUNT ZONE
                   </h2>
                   <Button
                     variant="ghost"

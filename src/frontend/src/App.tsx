@@ -29,7 +29,7 @@ import { AnimatePresence, motion, useInView } from "motion/react";
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { DinoGameModal } from "./components/DinoGame";
+import { DinoGame, DinoGameModal } from "./components/DinoGame";
 import { useActor } from "./hooks/useActor";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import {
@@ -42,6 +42,7 @@ import AdminPage from "./pages/AdminPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import LoginPage from "./pages/LoginPage";
+import ProfilePage from "./pages/ProfilePage";
 import SignupPage from "./pages/SignupPage";
 import { onContentUpdate, readAll } from "./utils/contentStore";
 
@@ -444,6 +445,15 @@ function Header({
             </button>
             <button
               type="button"
+              onClick={() => onNavigate("/profile")}
+              className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors"
+              aria-label="Profile"
+              data-ocid="header.profile.button"
+            >
+              <User className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
               onClick={() => onNavigate("/cart")}
               className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors relative"
               aria-label="Cart"
@@ -570,6 +580,15 @@ function useContent() {
 
 // ─── Promo Slider (top banner, auto-advances every 5s) ──────────────────────────────────
 const PROMO_SLIDES = [
+  {
+    id: "delivery",
+    icon: "🚚",
+    text: "Free Delivery on All Orders",
+    sub: "No Minimum Order",
+    bg: "oklch(0.42 0.16 175)",
+    highlight: true,
+    link: null,
+  },
   {
     id: "dino",
     icon: "🎮",
@@ -745,8 +764,11 @@ const CAROUSEL_SLIDES = [
   },
 ];
 
-function HeroCarousel({ onNavigate }: { onNavigate: (path: string) => void }) {
+function HeroCarousel({
+  onNavigate: _onNavigate,
+}: { onNavigate: (path: string) => void }) {
   const [active, setActive] = useState(0);
+  const [showGamePopup, setShowGamePopup] = useState(false);
   const [_autoPlay, setAutoPlay] = useState(false);
 
   // Auto-advance every 5 seconds
@@ -782,8 +804,7 @@ function HeroCarousel({ onNavigate }: { onNavigate: (path: string) => void }) {
             onClick={() => {
               const lnk = (slide as any).link;
               if (lnk) {
-                const el = document.querySelector(lnk);
-                if (el) el.scrollIntoView({ behavior: "smooth" });
+                setShowGamePopup(true);
               }
             }}
           >
@@ -997,19 +1018,6 @@ function HeroCarousel({ onNavigate }: { onNavigate: (path: string) => void }) {
                 )}
               </>
             )}
-            {/* Overlay gradient + text */}
-            <div
-              className={`absolute inset-0 bg-gradient-to-r ${slide.gradient}`}
-            />
-            <div className="absolute bottom-0 left-0 p-4 sm:p-6">
-              <span className="inline-block bg-gold text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-2 uppercase tracking-wide">
-                {slide.tag}
-              </span>
-              <h2 className="font-display font-black text-white text-xl sm:text-3xl leading-tight drop-shadow-lg">
-                {slide.title}
-              </h2>
-              <p className="text-white/80 text-sm mt-0.5">{slide.subtitle}</p>
-            </div>
           </motion.div>
         </AnimatePresence>
 
@@ -1058,94 +1066,26 @@ function HeroCarousel({ onNavigate }: { onNavigate: (path: string) => void }) {
         </div>
       </div>
 
-      {/* Thumbnail strip */}
-      <div className="flex gap-2 px-3 py-2.5 bg-white overflow-x-auto scrollbar-hide border-b border-border">
-        {CAROUSEL_SLIDES.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => {
-              setAutoPlay(false);
-              setActive(i);
-            }}
-            data-ocid={"carousel.tab"}
-            className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-              i === active ? "border-gold" : "border-transparent opacity-60"
-            }`}
-            style={{ width: 60, height: 60 }}
-          >
-            {s.image ? (
-              <img
-                src={s.image}
-                alt={s.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center text-2xl"
-                style={{
-                  background: "linear-gradient(135deg, #0a3d2e, #0d2535)",
-                }}
-              >
-                🎮
-              </div>
-            )}
-          </button>
-        ))}
-
-        {/* CTA button in thumbnail row */}
-        <button
-          type="button"
-          onClick={() => onNavigate("/cart")}
-          className="flex-shrink-0 ml-auto flex items-center gap-1.5 bg-gold text-white text-xs font-bold px-4 rounded-xl hover:bg-gold-bright transition-colors whitespace-nowrap"
-          data-ocid="hero.primary_button"
+      {/* Game Popup Modal */}
+      {showGamePopup && (
+        <div
+          className="fixed inset-0 z-[300] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.95)" }}
         >
-          <ShoppingCart className="w-3.5 h-3.5" />
-          Shop Now
-        </button>
-      </div>
+          <div className="relative w-full max-w-3xl mx-4">
+            <button
+              type="button"
+              onClick={() => setShowGamePopup(false)}
+              className="absolute -top-10 right-0 text-white/80 hover:text-white flex items-center gap-2 text-sm font-bold"
+              data-ocid="game.popup.close_button"
+            >
+              <X className="w-5 h-5" /> Close
+            </button>
+            <DinoGame />
+          </div>
+        </div>
+      )}
     </section>
-  );
-}
-
-// ─── Category Row ─────────────────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  "All",
-  "Floral",
-  "Woody",
-  "Oriental",
-  "Fresh",
-  "Formal",
-  "Party",
-];
-
-function CategoryRow({
-  active,
-  onChange,
-}: {
-  active: string;
-  onChange: (cat: string) => void;
-}) {
-  return (
-    <div className="bg-white border-b border-border sticky top-14 z-30 overflow-x-auto scrollbar-hide">
-      <div className="flex items-center gap-2 px-3 py-2.5">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => onChange(cat)}
-            data-ocid="products.filter.tab"
-            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-              cat === active
-                ? "bg-gold text-white shadow-gold"
-                : "bg-muted text-muted-foreground hover:bg-secondary"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -1157,7 +1097,7 @@ function ProductsSection({
 }) {
   const cm = useContent();
   const allProducts = getProducts(cm);
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory] = useState("All");
 
   const menProducts = allProducts.filter(
     (p) =>
@@ -1188,8 +1128,6 @@ function ProductsSection({
 
   return (
     <div id="shop" data-ocid="products.section">
-      <CategoryRow active={activeCategory} onChange={setActiveCategory} />
-
       <section className="bg-background pb-8 pt-4">
         <div className="max-w-lg mx-auto px-3">
           {/* MEN Section */}
@@ -1667,6 +1605,35 @@ function MiniProductCard({
 }) {
   const [showDetail, setShowDetail] = useState(false);
   const ocidIndex = index + 1;
+  const [inWishlist, setInWishlist] = useState(() => {
+    try {
+      const wl = JSON.parse(localStorage.getItem("alvra_wishlist") || "[]");
+      return wl.some((p: { id: number }) => p.id === Number(product.id));
+    } catch {
+      return false;
+    }
+  });
+  const toggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const wl = JSON.parse(localStorage.getItem("alvra_wishlist") || "[]");
+    if (inWishlist) {
+      const updated = wl.filter(
+        (p: { id: number }) => p.id !== Number(product.id),
+      );
+      localStorage.setItem("alvra_wishlist", JSON.stringify(updated));
+      setInWishlist(false);
+    } else {
+      wl.push({
+        id: Number(product.id),
+        name: product.name,
+        image: product.image,
+        price: 199,
+        mrp: 799,
+      });
+      localStorage.setItem("alvra_wishlist", JSON.stringify(wl));
+      setInWishlist(true);
+    }
+  };
   return (
     <>
       {showDetail && (
@@ -1699,6 +1666,17 @@ function MiniProductCard({
               {product.tag}
             </span>
           </div>
+          <button
+            type="button"
+            onClick={toggleWishlist}
+            className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white/80 hover:bg-white transition-colors"
+            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            data-ocid={`product.wishlist.button.${ocidIndex}`}
+          >
+            <Heart
+              className={`w-3.5 h-3.5 ${inWishlist ? "text-rose-500 fill-rose-500" : "text-muted-foreground"}`}
+            />
+          </button>
         </div>
 
         <div className="p-2.5">
@@ -1717,21 +1695,37 @@ function MiniProductCard({
             ))}
             <span className="text-[9px] text-muted-foreground ml-1">(128)</span>
           </div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="font-luxury font-black text-gold text-sm">
-              {product.price}
-            </span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddToCart(product.id);
-              }}
-              data-ocid={`product.buy.button.${ocidIndex}`}
-              className="text-[9px] font-bold px-2 py-1 rounded-full bg-gold text-white hover:bg-gold-bright transition-colors active:scale-95"
-            >
-              Add
-            </button>
+          <div className="mb-1.5">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="font-luxury font-black text-gold text-sm">
+                ₹199
+              </span>
+              <span
+                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                style={{ background: "oklch(0.52 0.18 145)" }}
+              >
+                75% off
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToCart(product.id);
+                }}
+                data-ocid={`product.buy.button.${ocidIndex}`}
+                className="ml-auto text-[9px] font-bold px-2 py-1 rounded-full bg-gold text-white hover:bg-gold-bright transition-colors active:scale-95"
+              >
+                Add
+              </button>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] text-muted-foreground line-through">
+                MRP ₹799
+              </span>
+              <span className="text-[8px] text-muted-foreground">
+                · with EMI
+              </span>
+            </div>
           </div>
           <button
             type="button"
@@ -1945,85 +1939,73 @@ function OfferAndEMISection() {
     <section
       id="offers"
       data-ocid="offer.section"
-      className="py-24 bg-obsidian-2 relative overflow-hidden"
+      className="py-16 bg-background"
     >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 70% at 50% 50%, oklch(0.84 0.08 186 / 0.15) 0%, transparent 70%)",
-        }}
-      />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
         <FadeIn>
-          <div className="bg-white border-2 border-gold rounded-3xl p-8 md:p-12 shadow-gold-lg relative overflow-hidden">
-            <div
-              className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
-              style={{
-                background:
-                  "linear-gradient(90deg, oklch(0.42 0.16 186), oklch(0.60 0.18 170), oklch(0.42 0.16 186))",
-              }}
-            />
-
-            <div className="text-center mb-8">
-              <div className="text-5xl mb-4">🔥💳</div>
-              <h2 className="font-luxury text-4xl md:text-5xl font-black text-gold mb-3">
-                Launch Offer + Easy EMI
-              </h2>
-              <p className="text-muted-foreground text-lg mb-2">
+          <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 border-b border-border">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl">🔥</span>
+                <h2 className="font-luxury text-2xl font-black text-foreground">
+                  Launch Offer + Easy EMI
+                </h2>
+              </div>
+              <p className="text-muted-foreground text-sm">
                 Everything in the box. Pay your way.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-3 mb-8">
-              {inclusions.map((item) => (
-                <div
-                  key={item.text}
-                  className="flex items-center gap-3 bg-obsidian-2 rounded-xl px-4 py-3 border border-border"
-                >
-                  <item.icon className="w-5 h-5 text-gold flex-shrink-0" />
-                  <span className="text-foreground font-medium">
-                    {item.text}
-                  </span>
-                </div>
-              ))}
+            {/* Inclusions */}
+            <div className="px-6 py-4 border-b border-border">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                What's included
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {inclusions.map((item) => (
+                  <div
+                    key={item.text}
+                    className="flex items-center gap-2 text-sm text-foreground"
+                  >
+                    <item.icon className="w-4 h-4 text-gold flex-shrink-0" />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="bg-obsidian-2 rounded-2xl border-2 border-gold p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-foreground text-lg">
+            {/* EMI pricing */}
+            <div className="px-6 py-4 border-b border-border">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-foreground text-sm">
                   💳 Buy via EMI
                 </h3>
                 <span
-                  className="text-xs font-black px-3 py-1 rounded-full text-white animate-pulse-gold"
-                  style={{ background: "oklch(0.72 0.18 55)" }}
+                  className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
+                  style={{ background: "oklch(0.52 0.18 145)" }}
                 >
                   EMI DISCOUNT
                 </span>
               </div>
-              <p className="text-muted-foreground text-sm mb-4">
+              <p className="text-muted-foreground text-xs mb-3">
                 Exclusive discount — only when you choose EMI at checkout
               </p>
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="text-center bg-white rounded-xl p-4 border border-gold">
-                  <div className="text-2xl font-bold text-gold font-luxury">
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="rounded-xl border border-border p-3 text-center">
+                  <div className="text-xl font-bold text-gold font-luxury">
                     ₹199
                   </div>
                   <div className="text-muted-foreground text-xs">Pay today</div>
                 </div>
-                <div className="flex items-center justify-center">
-                  <span className="text-muted-foreground font-bold text-lg">
-                    +
-                  </span>
-                </div>
-                <div className="text-center bg-white rounded-xl p-4 border border-border">
-                  <div className="text-2xl font-bold text-foreground font-luxury">
-                    ₹150<span className="text-sm">/wk</span>
+                <div className="rounded-xl border border-border p-3 text-center">
+                  <div className="text-xl font-bold text-foreground font-luxury">
+                    ₹150<span className="text-xs">/wk</span>
                   </div>
-                  <div className="text-muted-foreground text-xs">x3 weeks</div>
+                  <div className="text-muted-foreground text-xs">× 3 weeks</div>
                 </div>
               </div>
-              <div className="space-y-2 mb-4">
+              <div className="space-y-1.5 mb-3">
                 {[
                   {
                     week: "Today",
@@ -2036,16 +2018,18 @@ function OfferAndEMISection() {
                 ].map((row) => (
                   <div
                     key={row.week}
-                    className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white border border-border"
+                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40"
                   >
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-4 h-4 text-gold" />
-                      <span className="text-foreground font-medium">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-foreground text-sm">
                         {row.week}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-gold font-bold">{row.amount}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gold font-semibold text-sm">
+                        {row.amount}
+                      </span>
                       <span className="text-muted-foreground text-xs hidden sm:inline">
                         {row.note}
                       </span>
@@ -2053,39 +2037,39 @@ function OfferAndEMISection() {
                   </div>
                 ))}
               </div>
-              <div className="text-center text-sm text-muted-foreground mb-4">
-                Total via EMI:{" "}
-                <span className="line-through text-muted-foreground">₹799</span>{" "}
-                <span className="text-gold font-bold text-lg">₹649</span>
+              <div className="text-xs text-muted-foreground mb-3">
+                Total via EMI: <span className="line-through">₹799</span> →{" "}
+                <span className="text-gold font-semibold">₹649</span>
               </div>
               <Button
-                size="lg"
+                size="default"
                 onClick={() => scrollTo("shop")}
-                className="w-full bg-gold text-white font-bold py-5 hover:bg-gold-bright transition-all hover:scale-[1.02] text-base rounded-full animate-pulse-gold shadow-gold"
+                className="w-full bg-gold text-white font-semibold hover:bg-gold-bright transition-colors rounded-xl"
                 data-ocid="offer.emi.primary_button"
               >
                 Buy with EMI — Pay ₹199 Now
               </Button>
             </div>
 
-            <div className="text-center">
-              <p className="text-muted-foreground text-sm mb-3">
-                Prefer to pay in full?{" "}
-                <span className="text-foreground font-semibold">
+            {/* Full price option */}
+            <div className="px-6 py-4 flex items-center justify-between">
+              <p className="text-muted-foreground text-sm">
+                Prefer full price?{" "}
+                <span className="text-foreground font-medium">
                   ₹799 one-time
                 </span>{" "}
-                <span className="text-muted-foreground text-xs">
-                  (no EMI discount applies)
+                <span className="text-xs text-muted-foreground">
+                  (no EMI discount)
                 </span>
               </p>
               <Button
                 variant="outline"
-                size="lg"
+                size="sm"
                 onClick={() => scrollTo("shop")}
-                className="border-gold text-gold hover:bg-gold hover:text-white transition-all rounded-full px-8"
+                className="border-border text-foreground hover:border-gold hover:text-gold transition-colors rounded-xl ml-4 flex-shrink-0"
                 data-ocid="offer.fullprice.secondary_button"
               >
-                Buy Full Price ₹799
+                Buy ₹799
               </Button>
             </div>
           </div>
@@ -2147,6 +2131,115 @@ function WhySection() {
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {feature.desc}
                 </p>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Stats Section ──────────────────────────────────────────────────────────────────────────────
+function StatsSection() {
+  const stats = [
+    { value: "10,000+", label: "Happy Customers", icon: "😊" },
+    { value: "4.9★", label: "Average Rating", icon: "⭐" },
+    { value: "50+", label: "Unique Fragrances", icon: "🌸" },
+    { value: "100%", label: "Authentic", icon: "✅" },
+  ];
+  return (
+    <section
+      data-ocid="stats.section"
+      className="py-10"
+      style={{ background: "oklch(0.32 0.10 205)" }}
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-white/10">
+          {stats.map((stat, i) => (
+            <div
+              key={stat.label}
+              data-ocid={`stats.item.${i + 1}`}
+              className="text-center py-4 px-4"
+            >
+              <div className="text-xl mb-1">{stat.icon}</div>
+              <div
+                className="font-luxury font-black text-2xl md:text-3xl mb-0.5"
+                style={{ color: "oklch(0.84 0.12 55)" }}
+              >
+                {stat.value}
+              </div>
+              <div className="text-white/70 text-xs font-medium uppercase tracking-wide">
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── How It Works Section ──────────────────────────────────────────────────────────────────────
+function HowItWorksSection() {
+  const steps = [
+    {
+      num: "1",
+      icon: "🛒",
+      title: "Choose Your Scent",
+      desc: "Browse our curated collection of premium fragrances and pick the one that speaks to you.",
+    },
+    {
+      num: "2",
+      icon: "💳",
+      title: "Pay Easy EMI",
+      desc: "Pay just ₹199 today, then ₹150/week for 3 weeks. No hidden charges, no interest.",
+    },
+    {
+      num: "3",
+      icon: "📦",
+      title: "Delivered to Your Door",
+      desc: "Your perfume, travel spray, and gift card arrive at your doorstep within 3–5 days.",
+    },
+  ];
+  return (
+    <section data-ocid="howit.section" className="py-16 bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <FadeIn>
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-gold mb-2">
+              Simple Process
+            </p>
+            <h2 className="font-luxury font-black text-3xl md:text-4xl text-foreground">
+              How It Works
+            </h2>
+          </div>
+        </FadeIn>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {steps.map((step, i) => (
+            <FadeIn key={step.num} delay={i * 0.1}>
+              <div
+                data-ocid={`howit.step.${i + 1}`}
+                className="relative bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-center"
+              >
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-white text-sm"
+                  style={{ background: "oklch(0.42 0.16 186)" }}
+                >
+                  {step.num}
+                </div>
+                <div className="text-3xl mb-3">{step.icon}</div>
+                <h3 className="font-bold text-foreground mb-2">{step.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {step.desc}
+                </p>
+                {i < 2 && (
+                  <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
+                    <div className="w-6 h-6 rounded-full border-2 border-border bg-white flex items-center justify-center">
+                      <span className="text-muted-foreground text-xs">→</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </FadeIn>
           ))}
@@ -2467,6 +2560,8 @@ function HomePage({
           <CustomSectorsSection />
           <OfferAndEMISection />
           <WhySection />
+          <StatsSection />
+          <HowItWorksSection />
           <ReviewsSection />
           <InstagramSection />
         </main>
@@ -2532,6 +2627,16 @@ export default function App() {
             transition={{ duration: 0.2 }}
           >
             <CartPage onNavigate={navigate} />
+          </motion.div>
+        ) : path === "/profile" ? (
+          <motion.div
+            key="profile"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ProfilePage onNavigate={navigate} />
           </motion.div>
         ) : path === "/checkout" ? (
           <motion.div
