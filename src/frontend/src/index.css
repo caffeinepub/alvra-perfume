@@ -1,0 +1,339 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── ALVRA Fonts ─── */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/assets/fonts/Fraunces[SOFT,WONK,opsz,wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("/assets/fonts/Figtree[wght].woff2") format("woff2");
+  font-weight: 300 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk[wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/assets/fonts/PlayfairDisplay[wght].woff2") format("woff2");
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+/* ─── ALVRA Design Tokens — Teal Boutique ─── */
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Clean white base */
+    --background: 0.99 0.004 200;
+    --foreground: 0.15 0.025 255;
+
+    --card: 1.0 0 0;
+    --card-foreground: 0.15 0.025 255;
+
+    --popover: 1.0 0 0;
+    --popover-foreground: 0.15 0.025 255;
+
+    /* Deep teal primary */
+    --primary: 0.58 0.16 186;
+    --primary-foreground: 1.0 0 0;
+
+    /* Light teal secondary */
+    --secondary: 0.95 0.035 195;
+    --secondary-foreground: 0.35 0.08 186;
+
+    /* Muted */
+    --muted: 0.96 0.015 200;
+    --muted-foreground: 0.5 0.025 210;
+
+    /* Emerald accent */
+    --accent: 0.93 0.045 165;
+    --accent-foreground: 0.28 0.09 165;
+
+    /* Destructive */
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    /* Borders */
+    --border: 0.91 0.025 195;
+    --input: 0.94 0.02 195;
+    --ring: 0.58 0.16 186;
+
+    /* Charts */
+    --chart-1: 0.58 0.16 186;
+    --chart-2: 0.62 0.18 165;
+    --chart-3: 0.72 0.12 230;
+    --chart-4: 0.78 0.09 80;
+    --chart-5: 0.65 0.14 20;
+
+    /* Sidebar */
+    --sidebar: 0.97 0.018 200;
+    --sidebar-foreground: 0.15 0.025 255;
+    --sidebar-primary: 0.58 0.16 186;
+    --sidebar-primary-foreground: 1.0 0 0;
+    --sidebar-accent: 0.93 0.045 165;
+    --sidebar-accent-foreground: 0.28 0.09 165;
+    --sidebar-border: 0.91 0.025 195;
+    --sidebar-ring: 0.58 0.16 186;
+
+    /* ALVRA brand tokens — teal palette */
+    --gold: 0.58 0.16 186;
+    --gold-bright: 0.65 0.18 186;
+    --gold-dim: 0.84 0.08 186;
+    --obsidian: 1.0 0 0;
+    --obsidian-2: 0.97 0.018 195;
+    --obsidian-3: 0.93 0.03 195;
+
+    /* Teal gradient stops */
+    --teal-deep: 0.42 0.14 200;
+    --teal-mid: 0.58 0.16 186;
+    --teal-soft: 0.92 0.06 195;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Figtree", "Cabinet Grotesk", sans-serif;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: oklch(var(--gold) / 0.15);
+    color: oklch(var(--foreground));
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: oklch(var(--obsidian));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(var(--gold-dim));
+    border-radius: 3px;
+  }
+}
+
+/* ─── ALVRA Utility Classes ─── */
+@layer utilities {
+  .text-gold {
+    color: oklch(var(--gold));
+  }
+  .text-gold-bright {
+    color: oklch(var(--gold-bright));
+  }
+  .bg-gold {
+    background-color: oklch(var(--gold));
+  }
+  .bg-obsidian {
+    background-color: oklch(var(--obsidian));
+  }
+  .bg-obsidian-2 {
+    background-color: oklch(var(--obsidian-2));
+  }
+  .bg-obsidian-3 {
+    background-color: oklch(var(--obsidian-3));
+  }
+  .border-gold {
+    border-color: oklch(var(--gold));
+  }
+  .border-gold-dim {
+    border-color: oklch(var(--gold-dim));
+  }
+
+  .font-display {
+    font-family: "Fraunces", serif;
+  }
+
+  .font-luxury {
+    font-family: "Fraunces", serif;
+  }
+
+  .gold-glow {
+    text-shadow: 0 0 24px oklch(var(--gold) / 0.25), 0 0 48px
+      oklch(var(--gold) / 0.1);
+  }
+
+  .gold-glow-box {
+    box-shadow: 0 0 0 1px oklch(var(--gold-dim)), 0 8px 32px
+      oklch(var(--gold) / 0.1);
+  }
+
+  .gold-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--gold-dim)),
+      oklch(var(--gold-bright))
+    );
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .glass-dark {
+    background: oklch(var(--gold) / 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .card-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 48px oklch(var(--gold) / 0.12), 0 4px 16px
+      rgba(0, 0, 0, 0.06);
+  }
+
+  .teal-gradient-bg {
+    background: linear-gradient(
+      135deg,
+      oklch(0.38 0.14 200) 0%,
+      oklch(0.55 0.16 186) 50%,
+      oklch(0.48 0.18 170) 100%
+    );
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      oklch(var(--obsidian-3)) 0%,
+      oklch(var(--gold) / 0.08) 50%,
+      oklch(var(--obsidian-3)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  .shadow-gold {
+    box-shadow: 0 4px 20px oklch(var(--gold) / 0.18);
+  }
+
+  .shadow-gold-lg {
+    box-shadow: 0 8px 40px oklch(var(--gold) / 0.22);
+  }
+}
+
+/* ─── Keyframes ─── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes pulse-gold {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 20px oklch(var(--gold) / 0.25);
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow: 0 0 40px oklch(var(--gold) / 0.4);
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes tealShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes goldShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes bubble-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translateY(-20px) scale(1.05);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translateY(-8px) scale(0.95);
+    opacity: 0.5;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2.5s ease-in-out infinite;
+}
+
+.animate-bubble-float {
+  animation: bubble-float 6s ease-in-out infinite;
+}

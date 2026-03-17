@@ -531,16 +531,16 @@ function drawObstacle(ctx: CanvasRenderingContext2D, obs: Obstacle) {
     ctx.fill();
 
     // Neck
-    ctx.fillStyle = "#9333ea";
+    ctx.fillStyle = "#0d9488";
     ctx.shadowBlur = 0;
     ctx.beginPath();
     ctx.roundRect(bx + bw * 0.3, by + bh * 0.1, bw * 0.4, bh * 0.1, 2);
     ctx.fill();
 
     // Bottle body
-    ctx.fillStyle = "#6b21a8";
+    ctx.fillStyle = "#0f766e";
     ctx.shadowBlur = 12;
-    ctx.shadowColor = "#c084fc";
+    ctx.shadowColor = "#2dd4bf";
     ctx.beginPath();
     ctx.roundRect(bx + bw * 0.08, by + bh * 0.2, bw * 0.84, bh * 0.78, 6);
     ctx.fill();
@@ -574,11 +574,11 @@ function drawObstacle(ctx: CanvasRenderingContext2D, obs: Obstacle) {
 
   if (type === "perfume") {
     ctx.shadowBlur = 12;
-    ctx.shadowColor = "#c084fc";
+    ctx.shadowColor = "#2dd4bf";
     drawPerfumeBottle(x, y, w, h);
   } else if (type === "double_perfume") {
     ctx.shadowBlur = 12;
-    ctx.shadowColor = "#c084fc";
+    ctx.shadowColor = "#2dd4bf";
     drawPerfumeBottle(x, y, w, h);
     const h2 = h * 0.78;
     const y2 = y + h - h2;
@@ -607,7 +607,7 @@ function drawSpeedLines(
 ) {
   if (speed < 12) return;
   const alpha = Math.min((speed - 12) / 8, 0.4);
-  ctx.strokeStyle = `rgba(180, 120, 255, ${alpha})`;
+  ctx.strokeStyle = `rgba(45, 212, 191, ${alpha})`;
   ctx.lineWidth = 1;
   for (const line of lines) {
     ctx.globalAlpha = line.opacity * alpha;
@@ -656,7 +656,7 @@ const CONFETTI_PARTICLES = [
     h: 4.2,
     left: 27.5,
     top: 22.3,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -161,
     duration: 3.28,
     delay: 0.17,
@@ -680,7 +680,7 @@ const CONFETTI_PARTICLES = [
     h: 4.0,
     left: 80.6,
     top: 69.8,
-    color: "#ff6600",
+    color: "#10b981",
     yDist: -99,
     duration: 3.41,
     delay: 0.67,
@@ -692,7 +692,7 @@ const CONFETTI_PARTICLES = [
     h: 9.1,
     left: 60.4,
     top: 80.7,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -144,
     duration: 3.45,
     delay: 0.76,
@@ -704,7 +704,7 @@ const CONFETTI_PARTICLES = [
     h: 7.7,
     left: 86.2,
     top: 57.7,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -85,
     duration: 1.96,
     delay: 0.58,
@@ -716,7 +716,7 @@ const CONFETTI_PARTICLES = [
     h: 4.6,
     left: 27.8,
     top: 63.6,
-    color: "#ff6600",
+    color: "#10b981",
     yDist: -124,
     duration: 1.92,
     delay: 0.53,
@@ -752,7 +752,7 @@ const CONFETTI_PARTICLES = [
     h: 5.9,
     left: 65.5,
     top: 39.6,
-    color: "#00ffff",
+    color: "#2dd4bf",
     yDist: -135,
     duration: 2.03,
     delay: 0.49,
@@ -788,7 +788,7 @@ const CONFETTI_PARTICLES = [
     h: 4.1,
     left: 72.1,
     top: 68.2,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -112,
     duration: 2.78,
     delay: 0.22,
@@ -800,7 +800,7 @@ const CONFETTI_PARTICLES = [
     h: 9.7,
     left: 87.6,
     top: 26.3,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -101,
     duration: 3.33,
     delay: 1.74,
@@ -812,7 +812,7 @@ const CONFETTI_PARTICLES = [
     h: 7.7,
     left: 15.3,
     top: 76.3,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -173,
     duration: 2.56,
     delay: 0.0,
@@ -824,7 +824,7 @@ const CONFETTI_PARTICLES = [
     h: 9.6,
     left: 87.9,
     top: 83.2,
-    color: "#ff6600",
+    color: "#10b981",
     yDist: -87,
     duration: 3.26,
     delay: 1.89,
@@ -860,7 +860,7 @@ const CONFETTI_PARTICLES = [
     h: 4.7,
     left: 22.5,
     top: 33.8,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -108,
     duration: 1.94,
     delay: 0.14,
@@ -896,7 +896,7 @@ const CONFETTI_PARTICLES = [
     h: 8.0,
     left: 98.4,
     top: 9.8,
-    color: "#ff6600",
+    color: "#10b981",
     yDist: -121,
     duration: 3.22,
     delay: 0.5,
@@ -908,7 +908,7 @@ const CONFETTI_PARTICLES = [
     h: 6.5,
     left: 27.9,
     top: 25.0,
-    color: "#00ffff",
+    color: "#2dd4bf",
     yDist: -133,
     duration: 3.22,
     delay: 1.1,
@@ -920,7 +920,7 @@ const CONFETTI_PARTICLES = [
     h: 9.0,
     left: 96.9,
     top: 92.6,
-    color: "#00ffff",
+    color: "#2dd4bf",
     yDist: -100,
     duration: 2.47,
     delay: 0.43,
@@ -932,7 +932,7 @@ const CONFETTI_PARTICLES = [
     h: 6.3,
     left: 98.5,
     top: 26.5,
-    color: "#00ffff",
+    color: "#2dd4bf",
     yDist: -135,
     duration: 2.35,
     delay: 1.91,
@@ -944,7 +944,7 @@ const CONFETTI_PARTICLES = [
     h: 8.3,
     left: 15.5,
     top: 29.7,
-    color: "#00ffff",
+    color: "#2dd4bf",
     yDist: -150,
     duration: 2.58,
     delay: 1.5,
@@ -956,7 +956,7 @@ const CONFETTI_PARTICLES = [
     h: 7.0,
     left: 85.3,
     top: 15.7,
-    color: "#00ffff",
+    color: "#2dd4bf",
     yDist: -90,
     duration: 1.87,
     delay: 1.19,
@@ -968,7 +968,7 @@ const CONFETTI_PARTICLES = [
     h: 4.7,
     left: 89.0,
     top: 24.6,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -154,
     duration: 2.34,
     delay: 1.17,
@@ -980,7 +980,7 @@ const CONFETTI_PARTICLES = [
     h: 5.2,
     left: 71.6,
     top: 23.9,
-    color: "#ff6600",
+    color: "#10b981",
     yDist: -161,
     duration: 2.1,
     delay: 0.63,
@@ -1004,7 +1004,7 @@ const CONFETTI_PARTICLES = [
     h: 6.2,
     left: 15.8,
     top: 83.4,
-    color: "#cc00ff",
+    color: "#0d9488",
     yDist: -153,
     duration: 3.47,
     delay: 1.31,
@@ -1317,7 +1317,7 @@ export function DinoGame() {
         );
         ctx.shadowBlur = 0;
 
-        ctx.fillStyle = "rgba(200,160,255,0.5)";
+        ctx.fillStyle = "rgba(94,234,212,0.7)";
         ctx.font = "13px monospace";
         ctx.fillText(
           "SPACE / UP = Jump • DOWN = Duck • Double-tap = Double Jump",
@@ -1799,7 +1799,7 @@ export function DinoGame() {
       {gameStarted && !showReward && (
         <div className="flex items-center justify-between w-full max-w-[700px] px-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-purple-300">LIVES:</span>
+            <span className="text-xs font-mono text-teal-300">LIVES:</span>
             <div className="flex gap-1">
               {[0, 1].map((i) => (
                 <Heart
@@ -1839,9 +1839,9 @@ export function DinoGame() {
           <div
             className="relative rounded-xl overflow-hidden"
             style={{
-              border: "1px solid rgba(150,80,255,0.4)",
+              border: "1px solid rgba(13,148,136,0.5)",
               boxShadow:
-                "0 0 20px rgba(150,80,255,0.2), 0 0 40px rgba(150,80,255,0.1)",
+                "0 0 20px rgba(13,148,136,0.25), 0 0 40px rgba(13,148,136,0.12)",
             }}
           >
             <canvas
@@ -1937,10 +1937,10 @@ export function DinoGame() {
             className="relative w-full max-w-md mx-auto rounded-2xl overflow-hidden"
             style={{
               background:
-                "linear-gradient(135deg, #0a0025 0%, #150030 50%, #0a0020 100%)",
-              border: "1px solid rgba(150,80,255,0.5)",
+                "linear-gradient(135deg, #011a1a 0%, #052525 50%, #01201e 100%)",
+              border: "1px solid rgba(13,148,136,0.5)",
               boxShadow:
-                "0 0 40px rgba(150,80,255,0.3), 0 0 80px rgba(150,80,255,0.1)",
+                "0 0 40px rgba(13,148,136,0.3), 0 0 80px rgba(13,148,136,0.12)",
             }}
           >
             <div
@@ -2068,19 +2068,19 @@ export function DinoGame() {
                 <div
                   className="rounded-xl p-4 mb-5"
                   style={{
-                    background: "rgba(255,100,0,0.1)",
-                    border: "1px solid rgba(255,100,0,0.3)",
+                    background: "rgba(13,148,136,0.08)",
+                    border: "1px solid rgba(13,148,136,0.25)",
                   }}
                 >
                   <p
                     className="text-sm font-mono"
-                    style={{ color: "rgba(255,180,100,0.8)" }}
+                    style={{ color: "rgba(94,234,212,0.8)" }}
                   >
                     Score 500+ to unlock rewards!
                   </p>
                   <p
                     className="text-xs mt-2 font-mono"
-                    style={{ color: "rgba(200,160,255,0.6)" }}
+                    style={{ color: "rgba(45,212,191,0.6)" }}
                   >
                     500 → ₹20 OFF • 1000 → ₹50 OFF • 3000 → ₹150 OFF
                   </p>
@@ -2109,12 +2109,12 @@ export function DinoGame() {
       {!showReward && (
         <div
           className="flex flex-wrap gap-3 justify-center text-xs font-mono"
-          style={{ color: "rgba(180,130,255,0.7)" }}
+          style={{ color: "rgba(45,212,191,0.7)" }}
         >
           <span>⬆ SPACE = Jump</span>
           <span>⬇ DOWN = Duck</span>
           <span>↑↑ Double-tap = Double Jump</span>
-          <span className="text-purple-400">
+          <span className="text-teal-400">
             📱 Mobile: Tap = Jump • Hold = Duck
           </span>
         </div>
@@ -2142,9 +2142,7 @@ export function DinoGame() {
               <div className="font-bold font-mono" style={{ color: "#d4a017" }}>
                 {tier.score}
               </div>
-              <div style={{ color: "rgba(200,160,255,0.7)" }}>
-                {tier.reward}
-              </div>
+              <div style={{ color: "rgba(94,234,212,0.7)" }}>{tier.reward}</div>
             </div>
           ))}
         </div>
@@ -2219,7 +2217,7 @@ export function DinoGameModal() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setOpen(false)}
-                    style={{ color: "rgba(200,160,255,0.6)" }}
+                    style={{ color: "rgba(45,212,191,0.6)" }}
                     data-ocid="game.close_button"
                   >
                     <X className="w-5 h-5" />

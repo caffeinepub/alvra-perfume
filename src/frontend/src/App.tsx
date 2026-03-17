@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Award,
-  Camera,
   CheckCircle2,
   ChevronDown,
   Clock,
@@ -133,7 +132,8 @@ function getProducts(cm: Record<string, string> = readAll()) {
     {
       id: 1n,
       name: "Men Formal",
-      description: "Fresh elegant fragrance",
+      description:
+        "A crisp, woody fragrance with notes of cedar & musk — perfect for boardrooms and formal events.",
       price: "₹799",
       image: "/assets/generated/men-formal.dim_400x500.png",
       tag: "Bestseller",
@@ -142,7 +142,8 @@ function getProducts(cm: Record<string, string> = readAll()) {
     {
       id: 2n,
       name: "Men Party",
-      description: "Strong night fragrance",
+      description:
+        "Bold & intense with hints of oud and spice — made for nights you'll never forget.",
       price: "₹799",
       image: "/assets/generated/men-party.dim_400x500.png",
       tag: "New",
@@ -151,7 +152,8 @@ function getProducts(cm: Record<string, string> = readAll()) {
     {
       id: 3n,
       name: "Women Formal",
-      description: "Soft floral fragrance",
+      description:
+        "Delicate floral notes of rose & jasmine — elegance in every spritz.",
       price: "₹799",
       image: "/assets/generated/women-formal.dim_400x500.png",
       tag: "Popular",
@@ -160,7 +162,8 @@ function getProducts(cm: Record<string, string> = readAll()) {
     {
       id: 4n,
       name: "Women Party",
-      description: "Sweet seductive fragrance",
+      description:
+        "Sensual and alluring with vanilla & amber — captivate every room you enter.",
       price: "₹799",
       image: "/assets/generated/women-party.dim_400x500.png",
       tag: "Limited",
@@ -175,28 +178,6 @@ function getProducts(cm: Record<string, string> = readAll()) {
     image: cm[`product.${i + 1}.image`] ?? p.image,
   }));
 }
-
-// ─── Reviews data ──────────────────────────────────────────────────────────────────────
-const REVIEWS = [
-  {
-    name: "Rahul S.",
-    location: "Mumbai",
-    text: "Smells amazing and lasts all day. Worth every rupee! I get compliments wherever I go.",
-    product: "Men Formal",
-  },
-  {
-    name: "Priya M.",
-    location: "Delhi",
-    text: "Best perfume I bought online. Got so many compliments at work and parties!",
-    product: "Women Party",
-  },
-  {
-    name: "Amit K.",
-    location: "Bangalore",
-    text: "The Men Formal fragrance is perfect for office. Highly recommend ALVRA to everyone.",
-    product: "Men Formal",
-  },
-];
 
 // ─── Banner ticker items ───────────────────────────────────────────────────────────────────────
 const _TICKER_ITEMS = [
@@ -722,15 +703,6 @@ function PromoTicker() {
 // ─── Hero Carousel ──────────────────────────────────────────────────────────────────────
 const CAROUSEL_SLIDES = [
   {
-    id: 5,
-    image: "",
-    title: "Play Dino & Win FREE Perfume!",
-    subtitle: "Score high → Unlock coupon",
-    tag: "🎮 Play & Win",
-    gradient: "from-emerald-900/90 via-teal-900/60 to-transparent",
-    link: "#play-win",
-  },
-  {
     id: 1,
     image: "/assets/generated/hero-carousel-1.dim_800x600.jpg",
     title: "Floral Elegance",
@@ -756,10 +728,10 @@ const CAROUSEL_SLIDES = [
   },
   {
     id: 4,
-    image: "/assets/generated/men-party.dim_400x500.png",
-    title: "Party Edition",
-    subtitle: "Night Fragrance",
-    tag: "Limited",
+    image: "/assets/generated/perfume-hero.dim_800x400.jpg",
+    title: "ALVRA Collection",
+    subtitle: "Signature Fragrances",
+    tag: "New 2025",
     gradient: "from-purple-900/80 via-transparent to-transparent",
   },
 ];
@@ -1129,49 +1101,49 @@ function ProductsSection({
   return (
     <div id="shop" data-ocid="products.section">
       <section className="bg-background pb-8 pt-4">
-        <div className="max-w-lg mx-auto px-3">
-          {/* MEN Section */}
-          {filteredMen.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-3 px-1">
-                <div className="h-px flex-1 bg-border" />
-                <h2 className="font-display font-black text-base tracking-[0.2em] text-foreground uppercase">
-                  MEN
-                </h2>
-                <div className="h-px flex-1 bg-border" />
+        <div className="max-w-2xl mx-auto px-3">
+          {/* MEN & WOMEN Side by Side */}
+          {(filteredMen.length > 0 || filteredWomen.length > 0) && (
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* MEN Column */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <h2 className="font-display font-black text-sm tracking-[0.2em] text-foreground uppercase">
+                    MEN
+                  </h2>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <div className="flex flex-col gap-3">
+                  {filteredMen.map((product, i) => (
+                    <MiniProductCard
+                      key={product.id.toString()}
+                      product={product}
+                      index={i}
+                      onAddToCart={onAddToCart}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {filteredMen.map((product, i) => (
-                  <MiniProductCard
-                    key={product.id.toString()}
-                    product={product}
-                    index={i}
-                    onAddToCart={onAddToCart}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* WOMEN Section */}
-          {filteredWomen.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-3 px-1">
-                <div className="h-px flex-1 bg-border" />
-                <h2 className="font-display font-black text-base tracking-[0.2em] text-foreground uppercase">
-                  WOMEN
-                </h2>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {filteredWomen.map((product, i) => (
-                  <MiniProductCard
-                    key={product.id.toString()}
-                    product={product}
-                    index={i}
-                    onAddToCart={onAddToCart}
-                  />
-                ))}
+              {/* WOMEN Column */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <h2 className="font-display font-black text-sm tracking-[0.2em] text-foreground uppercase">
+                    WOMEN
+                  </h2>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <div className="flex flex-col gap-3">
+                  {filteredWomen.map((product, i) => (
+                    <MiniProductCard
+                      key={product.id.toString()}
+                      product={product}
+                      index={i}
+                      onAddToCart={onAddToCart}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -1227,9 +1199,7 @@ type FeedbackEntry = {
 };
 
 const SIZE_CONFIGS = {
-  "100ml": { price: 799, emi: { today: 199, weekly: 150 } },
-  "250ml": { price: 1299, emi: { today: 299, weekly: 250 } },
-  "500ml": { price: 1999, emi: { today: 499, weekly: 375 } },
+  "50ml": { price: 199, mrp: 799, emi: { today: 99, weekly: 34 } },
 } as const;
 type SizeKey = keyof typeof SIZE_CONFIGS;
 
@@ -1243,7 +1213,7 @@ function ProductDetailModal({
   onAddToCart: (id: bigint) => void;
 }) {
   const [displayProduct, setDisplayProduct] = useState(product);
-  const [selectedSize, setSelectedSize] = useState<SizeKey>("100ml");
+  const selectedSize: SizeKey = "50ml";
   const [feedbackList, setFeedbackList] = useState<FeedbackEntry[]>(() => {
     try {
       return JSON.parse(
@@ -1332,9 +1302,19 @@ function ProductDetailModal({
 
           <div className="p-6">
             <div className="flex items-start justify-between gap-3 mb-3">
-              <h2 className="font-luxury text-2xl font-black text-foreground">
-                {displayProduct.name}
-              </h2>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="font-luxury text-2xl font-black text-foreground">
+                    {displayProduct.name}
+                  </h2>
+                  <span
+                    className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
+                    style={{ background: "oklch(0.52 0.12 186)" }}
+                  >
+                    50ml
+                  </span>
+                </div>
+              </div>
               <span
                 className="text-xs font-bold px-2.5 py-1 rounded-full text-white flex-shrink-0"
                 style={{ background: "oklch(0.58 0.16 186)" }}
@@ -1343,9 +1323,24 @@ function ProductDetailModal({
               </span>
             </div>
 
-            <p className="text-muted-foreground text-sm mb-4">
-              {displayProduct.description}
-            </p>
+            {/* About this fragrance */}
+            <div
+              className="rounded-xl p-3 mb-4 border-l-4"
+              style={{
+                background: "oklch(0.97 0.02 186)",
+                borderLeftColor: "oklch(0.58 0.16 186)",
+              }}
+            >
+              <p
+                className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                style={{ color: "oklch(0.58 0.16 186)" }}
+              >
+                About this fragrance
+              </p>
+              <p className="text-foreground text-sm leading-relaxed">
+                {displayProduct.description}
+              </p>
+            </div>
 
             <div className="flex items-center gap-1 mb-5">
               {[1, 2, 3, 4, 5].map((s) => (
@@ -1357,39 +1352,6 @@ function ProductDetailModal({
               <span className="text-sm text-muted-foreground ml-2">
                 (128 reviews)
               </span>
-            </div>
-
-            {/* Size Selector */}
-            <div className="mb-4">
-              <p className="text-sm font-semibold text-foreground mb-2">
-                Select Size
-              </p>
-              <div className="flex gap-2">
-                {(["100ml", "250ml", "500ml"] as SizeKey[]).map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    data-ocid={`product.size.${size.replace("ml", "")}`}
-                    onClick={() => setSelectedSize(size)}
-                    className="flex-1 py-2 rounded-full text-sm font-bold border-2 transition-all"
-                    style={
-                      selectedSize === size
-                        ? {
-                            background: "oklch(0.58 0.16 186)",
-                            borderColor: "oklch(0.58 0.16 186)",
-                            color: "white",
-                          }
-                        : {
-                            background: "white",
-                            borderColor: "oklch(0.58 0.16 186)",
-                            color: "oklch(0.58 0.16 186)",
-                          }
-                    }
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div
@@ -1407,9 +1369,12 @@ function ProductDetailModal({
                   EMI DISCOUNT
                 </span>
               </div>
-              <div className="text-gold font-luxury font-black text-xl mb-1">
-                Pay ₹{sizeConfig.emi.today} today + ₹{sizeConfig.emi.weekly}
-                /week x3
+              <div className="text-gold font-luxury font-black text-3xl mb-1">
+                ₹{sizeConfig.emi.today}
+                <span className="text-base font-bold opacity-80">
+                  {" "}
+                  today + ₹{sizeConfig.emi.weekly}/wk×3
+                </span>
               </div>
               <div className="text-muted-foreground text-xs">
                 Total via EMI:{" "}
@@ -1426,7 +1391,7 @@ function ProductDetailModal({
                 <span className="text-muted-foreground text-sm">
                   Full price (no EMI)
                 </span>
-                <span className="font-luxury font-black text-foreground text-xl">
+                <span className="font-luxury font-black text-foreground text-2xl">
                   ₹{sizeConfig.price}
                 </span>
               </div>
@@ -1476,7 +1441,6 @@ function ProductDetailModal({
                       className="flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer group"
                       onClick={() => {
                         setDisplayProduct(sp);
-                        setSelectedSize("100ml");
                       }}
                     >
                       <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-transparent group-hover:border-teal-400 transition-all">
@@ -1654,9 +1618,15 @@ function MiniProductCard({
       >
         <div className="relative overflow-hidden bg-muted aspect-square">
           <img
-            src={product.image}
+            src={
+              product.name.toLowerCase().includes("men")
+                ? "/assets/generated/perfume-men.dim_400x500.png"
+                : product.name.toLowerCase().includes("women")
+                  ? "/assets/generated/perfume-women.dim_400x500.png"
+                  : "/assets/generated/perfume-teal.dim_400x500.png"
+            }
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"
+            className="w-full h-full object-contain transition-transform duration-400 group-hover:scale-105"
           />
           <div className="absolute top-1.5 left-1.5">
             <span
@@ -1683,9 +1653,17 @@ function MiniProductCard({
           <h3 className="font-bold text-foreground text-xs leading-tight mb-0.5 truncate">
             {product.name}
           </h3>
-          <p className="text-muted-foreground text-[10px] mb-1.5 truncate">
-            {product.description}
-          </p>
+          <div
+            className="mb-1.5 pl-2 border-l-2 rounded-sm"
+            style={{ borderLeftColor: "oklch(0.58 0.16 186)" }}
+          >
+            <p
+              className="text-[11px] leading-snug font-medium line-clamp-2"
+              style={{ color: "oklch(0.30 0.10 186)" }}
+            >
+              {product.description}
+            </p>
+          </div>
           <div className="flex items-center gap-0.5 mb-2">
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
@@ -1695,17 +1673,36 @@ function MiniProductCard({
             ))}
             <span className="text-[9px] text-muted-foreground ml-1">(128)</span>
           </div>
-          <div className="mb-1.5">
+          <div className="mb-2">
+            {/* Price row */}
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="font-luxury font-black text-gold text-sm">
+              <span className="font-luxury font-black text-gold text-lg leading-none">
                 ₹199
               </span>
               <span
                 className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
-                style={{ background: "oklch(0.52 0.18 145)" }}
+                style={{ background: "oklch(0.50 0.20 145)" }}
               >
-                75% off
+                75% OFF
               </span>
+              <span
+                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                style={{ background: "oklch(0.52 0.12 186)" }}
+              >
+                50ml
+              </span>
+            </div>
+            {/* MRP line */}
+            <div className="flex items-center gap-1 mb-2">
+              <span className="text-[9px] text-muted-foreground line-through">
+                M.R.P: ₹799
+              </span>
+              <span className="text-[8px] text-muted-foreground">
+                · EMI price
+              </span>
+            </div>
+            {/* Side-by-side buttons */}
+            <div className="flex gap-1.5">
               <button
                 type="button"
                 onClick={(e) => {
@@ -1713,32 +1710,25 @@ function MiniProductCard({
                   onAddToCart(product.id);
                 }}
                 data-ocid={`product.buy.button.${ocidIndex}`}
-                className="ml-auto text-[9px] font-bold px-2 py-1 rounded-full bg-gold text-white hover:bg-gold-bright transition-colors active:scale-95"
+                className="flex-1 text-[9px] font-bold py-1.5 rounded-full text-white hover:opacity-90 transition-opacity active:scale-95"
+                style={{ background: "oklch(0.52 0.12 186)" }}
               >
                 Add
               </button>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-[9px] text-muted-foreground line-through">
-                MRP ₹799
-              </span>
-              <span className="text-[8px] text-muted-foreground">
-                · with EMI
-              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDetail(true);
+                }}
+                data-ocid={`product.buynow.button.${ocidIndex}`}
+                className="flex-1 text-[9px] font-bold py-1.5 rounded-full text-white hover:opacity-90 transition-opacity active:scale-95"
+                style={{ background: "oklch(0.72 0.18 55)" }}
+              >
+                Buy Now
+              </button>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowDetail(true);
-            }}
-            data-ocid={`product.buynow.button.${ocidIndex}`}
-            className="w-full text-[9px] font-bold py-1.5 rounded-full text-white hover:opacity-90 transition-opacity active:scale-95"
-            style={{ background: "oklch(0.72 0.18 55)" }}
-          >
-            Buy Now
-          </button>
         </div>
       </motion.div>
     </>
@@ -2121,251 +2111,33 @@ function WhySection() {
           {features.map((feature, i) => (
             <FadeIn key={feature.title} delay={i * 0.1}>
               <div className="group bg-white border border-border rounded-2xl p-6 card-hover text-center h-full shadow-sm">
-                <div className="w-14 h-14 rounded-2xl bg-obsidian-2 border border-gold-dim flex items-center justify-center mx-auto mb-4 group-hover:bg-gold group-hover:border-gold transition-all">
-                  <feature.icon className="w-6 h-6 text-gold group-hover:text-white transition-colors" />
+                <div
+                  className="w-14 h-14 rounded-2xl border flex items-center justify-center mx-auto mb-4 transition-all"
+                  style={{
+                    background: "oklch(0.95 0.04 195)",
+                    borderColor: "oklch(0.84 0.08 186)",
+                    borderWidth: "1px",
+                  }}
+                >
+                  <feature.icon
+                    className="w-6 h-6 transition-colors"
+                    style={{ color: "oklch(0.58 0.16 186)" }}
+                  />
                 </div>
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <CheckCircle2 className="w-4 h-4 text-gold" />
                   <h3 className="font-bold text-foreground">{feature.title}</h3>
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: "rgba(255,255,255,0.6)" }}
+                >
                   {feature.desc}
                 </p>
               </div>
             </FadeIn>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Stats Section ──────────────────────────────────────────────────────────────────────────────
-function StatsSection() {
-  const stats = [
-    { value: "10,000+", label: "Happy Customers", icon: "😊" },
-    { value: "4.9★", label: "Average Rating", icon: "⭐" },
-    { value: "50+", label: "Unique Fragrances", icon: "🌸" },
-    { value: "100%", label: "Authentic", icon: "✅" },
-  ];
-  return (
-    <section
-      data-ocid="stats.section"
-      className="py-10"
-      style={{ background: "oklch(0.32 0.10 205)" }}
-    >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-white/10">
-          {stats.map((stat, i) => (
-            <div
-              key={stat.label}
-              data-ocid={`stats.item.${i + 1}`}
-              className="text-center py-4 px-4"
-            >
-              <div className="text-xl mb-1">{stat.icon}</div>
-              <div
-                className="font-luxury font-black text-2xl md:text-3xl mb-0.5"
-                style={{ color: "oklch(0.84 0.12 55)" }}
-              >
-                {stat.value}
-              </div>
-              <div className="text-white/70 text-xs font-medium uppercase tracking-wide">
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── How It Works Section ──────────────────────────────────────────────────────────────────────
-function HowItWorksSection() {
-  const steps = [
-    {
-      num: "1",
-      icon: "🛒",
-      title: "Choose Your Scent",
-      desc: "Browse our curated collection of premium fragrances and pick the one that speaks to you.",
-    },
-    {
-      num: "2",
-      icon: "💳",
-      title: "Pay Easy EMI",
-      desc: "Pay just ₹199 today, then ₹150/week for 3 weeks. No hidden charges, no interest.",
-    },
-    {
-      num: "3",
-      icon: "📦",
-      title: "Delivered to Your Door",
-      desc: "Your perfume, travel spray, and gift card arrive at your doorstep within 3–5 days.",
-    },
-  ];
-  return (
-    <section data-ocid="howit.section" className="py-16 bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn>
-          <div className="text-center mb-10">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-gold mb-2">
-              Simple Process
-            </p>
-            <h2 className="font-luxury font-black text-3xl md:text-4xl text-foreground">
-              How It Works
-            </h2>
-          </div>
-        </FadeIn>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {steps.map((step, i) => (
-            <FadeIn key={step.num} delay={i * 0.1}>
-              <div
-                data-ocid={`howit.step.${i + 1}`}
-                className="relative bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-center"
-              >
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-white text-sm"
-                  style={{ background: "oklch(0.42 0.16 186)" }}
-                >
-                  {step.num}
-                </div>
-                <div className="text-3xl mb-3">{step.icon}</div>
-                <h3 className="font-bold text-foreground mb-2">{step.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {step.desc}
-                </p>
-                {i < 2 && (
-                  <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                    <div className="w-6 h-6 rounded-full border-2 border-border bg-white flex items-center justify-center">
-                      <span className="text-muted-foreground text-xs">→</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Reviews Section ─────────────────────────────────────────────────────────────────────────────────
-function ReviewsSection() {
-  return (
-    <section data-ocid="reviews.section" className="py-24 bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn>
-          <SectionHeading
-            title="What Our Customers Say"
-            subtitle="Join thousands of satisfied fragrance lovers."
-          />
-        </FadeIn>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {REVIEWS.map((review, i) => (
-            <FadeIn key={review.name} delay={i * 0.1}>
-              <div
-                data-ocid={`review.card.${i + 1}`}
-                className="bg-white border border-border rounded-2xl p-6 card-hover relative shadow-sm"
-              >
-                {/* Top teal accent */}
-                <div
-                  className="absolute top-0 left-6 right-6 h-0.5 rounded-b-full"
-                  style={{ background: "oklch(0.58 0.16 186)" }}
-                />
-
-                {/* Stars */}
-                <div className="flex gap-1 mb-4 mt-2">
-                  {["s1", "s2", "s3", "s4", "s5"].map((s) => (
-                    <Star
-                      key={s}
-                      className="w-4 h-4 text-amber-400 fill-amber-400"
-                    />
-                  ))}
-                </div>
-
-                <p className="text-foreground leading-relaxed mb-5 relative z-10">
-                  “{review.text}”
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-foreground">
-                      {review.name}
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      {review.location}
-                    </div>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-gold-dim text-gold text-xs"
-                  >
-                    {review.product}
-                  </Badge>
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Instagram Section ────────────────────────────────────────────────────────────────────────────────
-function InstagramSection() {
-  const gradients = [
-    "from-teal-200/80 to-cyan-100/80",
-    "from-emerald-200/80 to-teal-100/80",
-    "from-sky-200/80 to-blue-100/80",
-    "from-teal-300/70 to-emerald-200/70",
-    "from-cyan-200/80 to-sky-100/80",
-    "from-emerald-300/70 to-green-200/70",
-  ];
-
-  return (
-    <section data-ocid="instagram.section" className="py-24 bg-obsidian-2">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center">
-        <FadeIn>
-          <SectionHeading title="Follow Our Journey" />
-          <p className="text-gold text-lg font-bold tracking-wider mb-10">
-            @alvra.officiai
-          </p>
-        </FadeIn>
-
-        <FadeIn delay={0.1}>
-          <div className="grid grid-cols-3 gap-3 mb-10">
-            {gradients.map((grad) => (
-              <div
-                key={grad}
-                className={`aspect-square rounded-xl bg-gradient-to-br ${grad} border border-border relative overflow-hidden group cursor-pointer card-hover`}
-              >
-                <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:opacity-70 transition-opacity">
-                  <Camera className="w-8 h-8 text-teal-700" />
-                </div>
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </div>
-            ))}
-          </div>
-        </FadeIn>
-
-        <FadeIn delay={0.2}>
-          <a
-            href="https://instagram.com/alvra.officiai"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white font-bold px-8 py-5 transition-all hover:scale-105 rounded-full"
-              data-ocid="instagram.follow.primary_button"
-            >
-              <Instagram className="w-5 h-5 mr-2" />
-              Follow on Instagram
-            </Button>
-          </a>
-        </FadeIn>
       </div>
     </section>
   );
@@ -2381,30 +2153,56 @@ function Footer() {
     <footer
       id="contact"
       data-ocid="footer.section"
-      className="bg-white border-t border-border py-16"
+      className="border-t border-border py-16"
+      style={{
+        background:
+          "linear-gradient(135deg, #042f2e 0%, #065a5a 50%, #042f2e 100%)",
+        color: "white",
+      }}
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Brand */}
         <div className="text-center mb-12">
-          <h2 className="font-luxury text-4xl font-black text-gold tracking-[0.4em] mb-2">
+          <h2
+            className="font-luxury text-4xl font-black tracking-[0.4em] mb-2"
+            style={{
+              color: "#2dd4bf",
+              textShadow: "0 0 20px rgba(45,212,191,0.3)",
+            }}
+          >
             ALVRA
           </h2>
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="h-0.5 w-12 bg-gold-dim" />
-            <p className="text-muted-foreground text-xs tracking-widest uppercase">
+            <div
+              className="h-0.5 w-12"
+              style={{ background: "rgba(45,212,191,0.4)" }}
+            />
+            <p
+              className="text-xs tracking-widest uppercase"
+              style={{ color: "rgba(94,234,212,0.6)" }}
+            >
               Premium Fragrances
             </p>
-            <div className="h-0.5 w-12 bg-gold-dim" />
+            <div
+              className="h-0.5 w-12"
+              style={{ background: "rgba(45,212,191,0.4)" }}
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {/* About */}
           <div>
-            <h3 className="font-bold text-foreground mb-4 text-sm uppercase tracking-wider">
+            <h3
+              className="font-bold mb-4 text-sm uppercase tracking-wider"
+              style={{ color: "rgba(45,212,191,0.9)" }}
+            >
               About ALVRA
             </h3>
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >
               Luxury fragrances crafted for the modern Indian. From formal
               elegance to party nights — ALVRA defines your signature scent.
             </p>
@@ -2412,7 +2210,10 @@ function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-bold text-foreground mb-4 text-sm uppercase tracking-wider">
+            <h3
+              className="font-bold mb-4 text-sm uppercase tracking-wider"
+              style={{ color: "rgba(45,212,191,0.9)" }}
+            >
               Get in Touch
             </h3>
             <div className="space-y-3">
@@ -2420,7 +2221,8 @@ function Footer() {
                 href="https://wa.me/918787673730"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted-foreground hover:text-gold transition-colors text-sm"
+                className="flex items-center gap-3 transition-colors text-sm"
+                style={{ color: "rgba(255,255,255,0.65)" }}
                 data-ocid="footer.whatsapp.link"
               >
                 <MessageCircle className="w-4 h-4 text-green-500" />
@@ -2428,7 +2230,8 @@ function Footer() {
               </a>
               <a
                 href="mailto:kmsworld29@gmail.com"
-                className="flex items-center gap-3 text-muted-foreground hover:text-gold transition-colors text-sm"
+                className="flex items-center gap-3 transition-colors text-sm"
+                style={{ color: "rgba(255,255,255,0.65)" }}
                 data-ocid="footer.email.link"
               >
                 <Mail className="w-4 h-4 text-gold" />
@@ -2438,7 +2241,8 @@ function Footer() {
                 href="https://instagram.com/alvra.officiai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted-foreground hover:text-gold transition-colors text-sm"
+                className="flex items-center gap-3 transition-colors text-sm"
+                style={{ color: "rgba(255,255,255,0.65)" }}
                 data-ocid="footer.instagram.link"
               >
                 <Instagram className="w-4 h-4 text-pink-500" />
@@ -2449,7 +2253,10 @@ function Footer() {
 
           {/* Links */}
           <div>
-            <h3 className="font-bold text-foreground mb-4 text-sm uppercase tracking-wider">
+            <h3
+              className="font-bold mb-4 text-sm uppercase tracking-wider"
+              style={{ color: "rgba(45,212,191,0.9)" }}
+            >
               Quick Links
             </h3>
             <div className="space-y-2">
@@ -2458,7 +2265,8 @@ function Footer() {
                   <button
                     type="button"
                     key={link}
-                    className="block text-muted-foreground hover:text-gold transition-colors text-sm text-left w-full"
+                    className="block transition-colors text-sm text-left w-full"
+                    style={{ color: "rgba(255,255,255,0.55)" }}
                   >
                     {link}
                   </button>
@@ -2470,7 +2278,9 @@ function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-muted-foreground text-xs">
-          <p>© {currentYear} ALVRA. All rights reserved.</p>
+          <p style={{ color: "rgba(255,255,255,0.5)" }}>
+            © {currentYear} ALVRA. All rights reserved.
+          </p>
           <p>
             Built with <Heart className="w-3 h-3 text-gold inline" /> using{" "}
             <a
@@ -2560,10 +2370,6 @@ function HomePage({
           <CustomSectorsSection />
           <OfferAndEMISection />
           <WhySection />
-          <StatsSection />
-          <HowItWorksSection />
-          <ReviewsSection />
-          <InstagramSection />
         </main>
         <Footer />
       </div>

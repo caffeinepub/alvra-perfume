@@ -280,7 +280,17 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
   const [saving, setSaving] = useState<string | null>(null);
 
   // Section ordering
-  const DEFAULT_ORDER = ["hero", "products", "offer", "why", "custom-sectors"];
+  const DEFAULT_ORDER = [
+    "hero",
+    "products",
+    "offer",
+    "ticker",
+    "carousel",
+    "orders",
+    "settings",
+    "why",
+    "custom-sectors",
+  ];
   const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_ORDER);
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
@@ -344,6 +354,59 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
     "Get ALVRA perfume today for just ₹199. Includes 50ml perfume, travel spray, thank you card, coupon & flower seeds.",
   );
 
+  // Ticker messages
+  const [tickerMessages, setTickerMessages] = useState([
+    "🚚 Free Delivery on All Orders — No Minimum Order",
+    "🎮 Play Dino Game & Win a FREE Perfume!",
+    "🎉 Launch Offer — Get ALVRA at ₹199 only!",
+    "💳 Easy EMI — Pay ₹99 today + ₹34/week x3",
+    "🌸 Free Flower Seeds Gift with every order",
+    "✈️ Free Travel Spray with every ALVRA perfume",
+  ]);
+
+  // Carousel slides
+  const [carouselSlides, setCarouselSlides] = useState([
+    {
+      title: "Floral Elegance",
+      subtitle: "New Launch 2025",
+      image: undefined as string | undefined,
+    },
+    {
+      title: "Men's Signature",
+      subtitle: "Formal & Party",
+      image: undefined as string | undefined,
+    },
+    {
+      title: "Women's Collection",
+      subtitle: "Rose & Bloom",
+      image: undefined as string | undefined,
+    },
+    {
+      title: "ALVRA Collection",
+      subtitle: "Signature Fragrances",
+      image: undefined as string | undefined,
+    },
+  ]);
+
+  // Orders
+  const [orders, setOrders] = useState<
+    Array<{
+      id: string;
+      date: string;
+      name?: string;
+      phone?: string;
+      items?: string;
+      total?: string;
+      payment?: string;
+      status: string;
+    }>
+  >([]);
+
+  // Site settings
+  const [siteWhatsapp, setSiteWhatsapp] = useState("919876543210");
+  const [siteStoreName, setSiteStoreName] = useState("ALVRA Perfume");
+  const [siteNotice, setSiteNotice] = useState("");
+
   // Why
   const [features, setFeatures] = useState([
     {
@@ -401,6 +464,44 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
       } catch {
         /* ignore */
       }
+    }
+    // Load ticker messages
+    for (let i = 1; i <= 6; i++) {
+      if (cm[`ticker.${i}`]) {
+        setTickerMessages((prev) => {
+          const next = [...prev];
+          next[i - 1] = cm[`ticker.${i}`];
+          return next;
+        });
+      }
+    }
+    // Load carousel slides
+    for (let i = 1; i <= 4; i++) {
+      const title = cm[`carousel.${i}.title`];
+      const subtitle = cm[`carousel.${i}.subtitle`];
+      const image = cm[`carousel.${i}.image`];
+      if (title || subtitle || image) {
+        setCarouselSlides((prev) => {
+          const next = [...prev];
+          if (title) next[i - 1] = { ...next[i - 1], title };
+          if (subtitle) next[i - 1] = { ...next[i - 1], subtitle };
+          if (image) next[i - 1] = { ...next[i - 1], image };
+          return next;
+        });
+      }
+    }
+    // Load settings
+    if (cm["settings.whatsapp"]) setSiteWhatsapp(cm["settings.whatsapp"]);
+    if (cm["settings.storename"]) setSiteStoreName(cm["settings.storename"]);
+    if (cm["settings.notice"]) setSiteNotice(cm["settings.notice"]);
+    // Load orders from localStorage
+    try {
+      const savedOrders = JSON.parse(
+        localStorage.getItem("alvra_orders") || "[]",
+      );
+      setOrders(Array.isArray(savedOrders) ? savedOrders : []);
+    } catch {
+      setOrders([]);
     }
   }, []);
 
@@ -471,6 +572,37 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
       updates[`why.${i + 1}.desc`] = features[i].desc;
     }
     doSave(updates, "why", "Why Choose ALVRA");
+  };
+
+  // ─── New save handlers ──────────────────────────────────────────────────
+  const saveTicker = () => {
+    const updates: Record<string, string> = {};
+    tickerMessages.forEach((msg, i) => {
+      updates[`ticker.${i + 1}`] = msg;
+    });
+    doSave(updates, "ticker", "Ticker messages");
+  };
+
+  const saveCarousel = () => {
+    const updates: Record<string, string> = {};
+    carouselSlides.forEach((slide, i) => {
+      updates[`carousel.${i + 1}.title`] = slide.title;
+      updates[`carousel.${i + 1}.subtitle`] = slide.subtitle;
+      if (slide.image) updates[`carousel.${i + 1}.image`] = slide.image;
+    });
+    doSave(updates, "carousel", "Carousel slides");
+  };
+
+  const saveSettings = () => {
+    doSave(
+      {
+        "settings.whatsapp": siteWhatsapp,
+        "settings.storename": siteStoreName,
+        "settings.notice": siteNotice,
+      },
+      "settings",
+      "Site settings",
+    );
   };
 
   // ─── Drag & Drop ─────────────────────────────────────────────────────────
@@ -718,6 +850,237 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
               saving={saving === "why"}
               label="Save Features"
               ocid="admin.why.save_button"
+            />
+          </div>
+        </div>
+      ),
+    },
+    ticker: {
+      title: "Ticker Messages",
+      content: (
+        <div className="space-y-3" data-ocid="admin.ticker.section">
+          <p className="text-muted-foreground text-xs">
+            Edit the scrolling promotional messages shown at the top of the
+            website.
+          </p>
+          {tickerMessages.map((msg, i) => (
+            <EditableField
+              key={`ticker-${i + 1}`}
+              label={`Message ${i + 1}`}
+              value={msg}
+              onChange={(v) =>
+                setTickerMessages((prev) => {
+                  const next = [...prev];
+                  next[i] = v;
+                  return next;
+                })
+              }
+              ocid={`admin.ticker.${i + 1}.input`}
+            />
+          ))}
+          <div className="flex justify-end">
+            <SaveBtn
+              onClick={saveTicker}
+              saving={saving === "ticker"}
+              label="Save Ticker"
+              ocid="admin.ticker.save_button"
+            />
+          </div>
+        </div>
+      ),
+    },
+    carousel: {
+      title: "Carousel Slides",
+      content: (
+        <div className="space-y-5" data-ocid="admin.carousel.section">
+          <p className="text-muted-foreground text-xs">
+            Edit the 4 main product image slides in the hero carousel.
+          </p>
+          {carouselSlides.map((slide, i) => (
+            <div
+              key={`carousel-slide-${i + 1}`}
+              className="bg-obsidian-2 rounded-xl p-4 border border-border"
+              data-ocid={`admin.carousel.item.${i + 1}`}
+            >
+              <p className="text-gold text-xs font-bold uppercase tracking-wider mb-3">
+                Slide {i + 1}
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4 mb-3">
+                <EditableField
+                  label="Title"
+                  value={slide.title}
+                  onChange={(v) =>
+                    setCarouselSlides((prev) =>
+                      prev.map((s, j) => (j === i ? { ...s, title: v } : s)),
+                    )
+                  }
+                  ocid={`admin.carousel.${i + 1}.title.input`}
+                />
+                <EditableField
+                  label="Subtitle"
+                  value={slide.subtitle}
+                  onChange={(v) =>
+                    setCarouselSlides((prev) =>
+                      prev.map((s, j) => (j === i ? { ...s, subtitle: v } : s)),
+                    )
+                  }
+                  ocid={`admin.carousel.${i + 1}.subtitle.input`}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+                  Slide Image
+                </Label>
+                <ImageDropZone
+                  currentSrc={slide.image}
+                  fallbackSrc="/assets/generated/hero-carousel-1.dim_800x600.jpg"
+                  label={slide.title}
+                  onImageChange={(url) =>
+                    setCarouselSlides((prev) =>
+                      prev.map((s, j) => (j === i ? { ...s, image: url } : s)),
+                    )
+                  }
+                  ocid={`admin.carousel.${i + 1}.image.dropzone`}
+                />
+              </div>
+            </div>
+          ))}
+          <div className="flex justify-end">
+            <SaveBtn
+              onClick={saveCarousel}
+              saving={saving === "carousel"}
+              label="Save All Slides"
+              ocid="admin.carousel.save_button"
+            />
+          </div>
+        </div>
+      ),
+    },
+    orders: {
+      title: `Orders (${orders.length})`,
+      content: (
+        <div className="space-y-4" data-ocid="admin.orders.section">
+          {orders.length === 0 ? (
+            <div
+              className="text-center py-12 text-muted-foreground"
+              data-ocid="admin.orders.empty_state"
+            >
+              <p className="text-4xl mb-3">📦</p>
+              <p className="font-semibold">No orders yet</p>
+              <p className="text-xs mt-1">
+                Orders placed through checkout will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {orders.map((order, i) => (
+                <div
+                  key={order.id || i}
+                  className="bg-obsidian-2 border border-border rounded-xl p-4"
+                  data-ocid={`admin.orders.item.${i + 1}`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">
+                        {order.name || "Customer"}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {order.date}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          order.status === "Fulfilled"
+                            ? "bg-green-900/40 text-green-400"
+                            : "bg-amber-900/40 text-amber-400"
+                        }`}
+                      >
+                        {order.status || "Pending"}
+                      </span>
+                      {order.status !== "Fulfilled" && (
+                        <button
+                          type="button"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-900/40 text-teal-400 hover:bg-teal-800/60 transition-colors"
+                          data-ocid={`admin.orders.confirm_button.${i + 1}`}
+                          onClick={() => {
+                            const updated = orders.map((o, j) =>
+                              j === i ? { ...o, status: "Fulfilled" } : o,
+                            );
+                            setOrders(updated);
+                            localStorage.setItem(
+                              "alvra_orders",
+                              JSON.stringify(updated),
+                            );
+                            toast.success("Order marked as Fulfilled!");
+                          }}
+                        >
+                          Mark Fulfilled
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <span className="text-muted-foreground">Phone:</span>
+                      <span className="text-foreground ml-1">
+                        {order.phone || "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Total:</span>
+                      <span className="text-gold font-bold ml-1">
+                        {order.total || "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Payment:</span>
+                      <span className="text-foreground ml-1">
+                        {order.payment || "—"}
+                      </span>
+                    </div>
+                  </div>
+                  {order.items && (
+                    <p className="text-muted-foreground text-xs mt-2 truncate">
+                      Items: {order.items}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    settings: {
+      title: "Site Settings",
+      content: (
+        <div className="space-y-4" data-ocid="admin.settings.section">
+          <EditableField
+            label="Store Name"
+            value={siteStoreName}
+            onChange={setSiteStoreName}
+            ocid="admin.settings.storename.input"
+          />
+          <EditableField
+            label="WhatsApp Number (with country code, no +)"
+            value={siteWhatsapp}
+            onChange={setSiteWhatsapp}
+            ocid="admin.settings.whatsapp.input"
+          />
+          <EditableField
+            label="Admin Notice / Announcement (shown as banner on site, leave blank to hide)"
+            value={siteNotice}
+            onChange={setSiteNotice}
+            multiline
+            ocid="admin.settings.notice.textarea"
+          />
+          <div className="flex justify-end">
+            <SaveBtn
+              onClick={saveSettings}
+              saving={saving === "settings"}
+              label="Save Settings"
+              ocid="admin.settings.save_button"
             />
           </div>
         </div>
