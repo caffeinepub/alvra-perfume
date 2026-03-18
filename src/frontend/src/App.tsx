@@ -25,7 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion, useInView } from "motion/react";
-import React from "react";
+import React, { createContext, useContext } from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DinoGame, DinoGameModal } from "./components/DinoGame";
@@ -559,6 +559,8 @@ function useContent() {
   return cm;
 }
 
+const ContentContext = createContext<Record<string, string>>({});
+
 // ─── Promo Slider (top banner, auto-advances every 5s) ──────────────────────────────────
 const PROMO_SLIDES = [
   {
@@ -1067,7 +1069,7 @@ function ProductsSection({
 }: {
   onAddToCart: (id: bigint) => void;
 }) {
-  const cm = useContent();
+  const cm = useContext(ContentContext);
   const allProducts = getProducts(cm);
   const [activeCategory] = useState("All");
 
@@ -1229,7 +1231,8 @@ function ProductDetailModal({
   const [hoverRating, setHoverRating] = useState(0);
 
   const sizeConfig = SIZE_CONFIGS[selectedSize];
-  const allProducts = getProducts();
+  const cm = useContext(ContentContext);
+  const allProducts = getProducts(cm);
   const similarProducts = allProducts.filter(
     (p) => String(p.id) !== String(displayProduct.id),
   );
@@ -1619,11 +1622,12 @@ function MiniProductCard({
         <div className="relative overflow-hidden bg-muted aspect-square">
           <img
             src={
-              product.name.toLowerCase().includes("men")
+              product.image ||
+              (product.name.toLowerCase().includes("men")
                 ? "/assets/generated/perfume-men.dim_400x500.png"
                 : product.name.toLowerCase().includes("women")
                   ? "/assets/generated/perfume-women.dim_400x500.png"
-                  : "/assets/generated/perfume-teal.dim_400x500.png"
+                  : "/assets/generated/perfume-teal.dim_400x500.png")
             }
             alt={product.name}
             className="w-full h-full object-contain transition-transform duration-400 group-hover:scale-105"
@@ -2071,7 +2075,7 @@ function OfferAndEMISection() {
 
 // ─── Why Choose Section ────────────────────────────────────────────────────────────────────────────────
 function WhySection() {
-  const cm = useContent();
+  const cm = useContext(ContentContext);
   const ICON_MAP = [Clock, Leaf, Sparkles, Heart];
   const DEFAULT_FEATURES = [
     {
@@ -2334,7 +2338,9 @@ function HomePage({
       { productId, quantity: 1n },
       {
         onSuccess: () => {
-          const product = getProducts().find((p) => p.id === productId);
+          const product = getProducts(readAll()).find(
+            (p) => p.id === productId,
+          );
           toast.success("Added to cart!", {
             description: product
               ? `${product.name} added to your cart.`
@@ -2380,9 +2386,10 @@ function HomePage({
 // ─── Root App with routing ───────────────────────────────────────────────────────────────────────────────
 export default function App() {
   const { path, navigate } = useRouter();
+  const cm = useContent();
 
   return (
-    <>
+    <ContentContext.Provider value={cm}>
       <Toaster
         theme="light"
         toastOptions={{
@@ -2466,6 +2473,6 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </ContentContext.Provider>
   );
 }

@@ -28,6 +28,7 @@ import {
   usePlaceOrderWithAddress,
   useValidateCoupon,
 } from "../hooks/useQueries";
+import { readAll } from "../utils/contentStore";
 
 interface CheckoutPageProps {
   onNavigate: (path: string) => void;
@@ -58,8 +59,7 @@ const STATIC_PRODUCTS = [
 ];
 
 const ITEM_PRICE = 799;
-const COD_CHARGE = 50;
-const EMI_DISCOUNT = 600; // ₹799 → ₹199
+// COD_CHARGE and EMI_DISCOUNT are loaded dynamically from contentStore inside the component
 
 type PaymentMethod = "upi" | "cod" | "emi";
 type EmiPlan = "3" | "6" | "12";
@@ -308,6 +308,15 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   const placeOrder = usePlaceOrderWithAddress();
   const clearCart = useClearCart();
   const validateCoupon = useValidateCoupon();
+
+  // Load dynamic payment settings from admin contentStore
+  const cm = readAll();
+  const ADMIN_UPI = cm["settings.admin_upi"] || "alvra@upi";
+  const PAYMENT_INSTRUCTIONS =
+    cm["settings.payment_instructions"] ||
+    "Pay to the UPI ID above and share screenshot on WhatsApp.";
+  const COD_CHARGE = Number.parseInt(cm["settings.cod_charge"] || "50");
+  const EMI_DISCOUNT = Number.parseInt(cm["settings.emi_discount"] || "600");
 
   // Form state
   const [name, setName] = useState("");
@@ -786,8 +795,19 @@ export default function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                   dataOcid="checkout.payment_method.upi.radio"
                 >
                   <div className="space-y-2">
+                    <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 mb-3">
+                      <p className="text-xs text-teal-600 font-medium uppercase tracking-wide mb-1">
+                        Pay To
+                      </p>
+                      <p className="text-teal-800 font-bold text-lg">
+                        {ADMIN_UPI}
+                      </p>
+                      <p className="text-teal-600 text-xs mt-1">
+                        {PAYMENT_INSTRUCTIONS}
+                      </p>
+                    </div>
                     <Label className="text-xs font-semibold text-teal-700">
-                      Enter UPI ID *
+                      Enter Your UPI ID (for payment confirmation) *
                     </Label>
                     <Input
                       value={upiId}

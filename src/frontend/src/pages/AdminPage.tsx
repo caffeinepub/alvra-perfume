@@ -288,6 +288,7 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
     "carousel",
     "orders",
     "settings",
+    "payment",
     "why",
     "custom-sectors",
   ];
@@ -407,6 +408,14 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
   const [siteStoreName, setSiteStoreName] = useState("ALVRA Perfume");
   const [siteNotice, setSiteNotice] = useState("");
 
+  // Payment settings
+  const [adminUpi, setAdminUpi] = useState("alvra@upi");
+  const [paymentInstructions, setPaymentInstructions] = useState(
+    "Please pay to the UPI ID above and share screenshot on WhatsApp.",
+  );
+  const [codCharge, setCodCharge] = useState("50");
+  const [emiDiscount, setEmiDiscount] = useState("600");
+
   // Why
   const [features, setFeatures] = useState([
     {
@@ -440,7 +449,7 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
         name: cm[`product.${i + 1}.name`] ?? p.name,
         desc: cm[`product.${i + 1}.desc`] ?? p.desc,
         price: cm[`product.${i + 1}.price`] ?? p.price,
-        image: cm[`product.${i + 1}.image`],
+        image: cm[`product.${i + 1}.image`] ?? p.image,
       })),
     );
     setFeatures((prev) =>
@@ -494,6 +503,12 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
     if (cm["settings.whatsapp"]) setSiteWhatsapp(cm["settings.whatsapp"]);
     if (cm["settings.storename"]) setSiteStoreName(cm["settings.storename"]);
     if (cm["settings.notice"]) setSiteNotice(cm["settings.notice"]);
+    if (cm["settings.admin_upi"]) setAdminUpi(cm["settings.admin_upi"]);
+    if (cm["settings.payment_instructions"])
+      setPaymentInstructions(cm["settings.payment_instructions"]);
+    if (cm["settings.cod_charge"]) setCodCharge(cm["settings.cod_charge"]);
+    if (cm["settings.emi_discount"])
+      setEmiDiscount(cm["settings.emi_discount"]);
     // Load orders from localStorage
     try {
       const savedOrders = JSON.parse(
@@ -602,6 +617,19 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
       },
       "settings",
       "Site settings",
+    );
+  };
+
+  const savePayment = () => {
+    doSave(
+      {
+        "settings.admin_upi": adminUpi,
+        "settings.payment_instructions": paymentInstructions,
+        "settings.cod_charge": codCharge,
+        "settings.emi_discount": emiDiscount,
+      },
+      "payment",
+      "Payment Settings",
     );
   };
 
@@ -1081,6 +1109,52 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
               saving={saving === "settings"}
               label="Save Settings"
               ocid="admin.settings.save_button"
+            />
+          </div>
+        </div>
+      ),
+    },
+    payment: {
+      title: "Payment Settings",
+      content: (
+        <div className="space-y-4" data-ocid="admin.payment.section">
+          <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-sm text-teal-800">
+            💡 Set your UPI ID so customers pay directly to your account. These
+            settings appear live in the checkout.
+          </div>
+          <EditableField
+            label="Your UPI ID (customers will pay to this)"
+            value={adminUpi}
+            onChange={setAdminUpi}
+            ocid="admin.payment.upi.input"
+          />
+          <EditableField
+            label="Payment Instructions (shown to customer on checkout)"
+            value={paymentInstructions}
+            onChange={setPaymentInstructions}
+            multiline
+            ocid="admin.payment.instructions.textarea"
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <EditableField
+              label="COD Surcharge (₹)"
+              value={codCharge}
+              onChange={setCodCharge}
+              ocid="admin.payment.cod.input"
+            />
+            <EditableField
+              label="EMI Discount Amount (₹)"
+              value={emiDiscount}
+              onChange={setEmiDiscount}
+              ocid="admin.payment.emi.input"
+            />
+          </div>
+          <div className="flex justify-end">
+            <SaveBtn
+              onClick={savePayment}
+              saving={saving === "payment"}
+              label="Save Payment Settings"
+              ocid="admin.payment.save_button"
             />
           </div>
         </div>
