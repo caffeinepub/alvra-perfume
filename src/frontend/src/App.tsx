@@ -1104,9 +1104,9 @@ function ProductsSection({
     <div id="shop" data-ocid="products.section">
       <section className="bg-background pb-8 pt-4">
         <div className="max-w-2xl mx-auto px-3">
-          {/* MEN & WOMEN Side by Side */}
+          {/* MEN & WOMEN Stacked */}
           {(filteredMen.length > 0 || filteredWomen.length > 0) && (
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="flex flex-col gap-8 mb-6">
               {/* MEN Column */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -1116,7 +1116,7 @@ function ProductsSection({
                   </h2>
                   <div className="h-px flex-1 bg-border" />
                 </div>
-                <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {filteredMen.map((product, i) => (
                     <MiniProductCard
                       key={product.id.toString()}
@@ -1136,7 +1136,7 @@ function ProductsSection({
                   </h2>
                   <div className="h-px flex-1 bg-border" />
                 </div>
-                <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {filteredWomen.map((product, i) => (
                     <MiniProductCard
                       key={product.id.toString()}
@@ -1630,7 +1630,7 @@ function MiniProductCard({
                   : "/assets/generated/perfume-teal.dim_400x500.png")
             }
             alt={product.name}
-            className="w-full h-full object-contain transition-transform duration-400 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"
           />
           <div className="absolute top-1.5 left-1.5">
             <span

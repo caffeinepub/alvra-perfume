@@ -561,14 +561,8 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
       [`product.${i + 1}.price`]: p.price,
     };
     if (p.image) {
-      try {
-        writeKey(`product.${i + 1}.image`, p.image);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Image too large");
-        return;
-      }
+      updates[`product.${i + 1}.image`] = p.image;
     }
-    // Save text separately (won't fail due to image quota)
     doSave(updates, `product-${i + 1}`, `Product ${i + 1}`);
   };
 
