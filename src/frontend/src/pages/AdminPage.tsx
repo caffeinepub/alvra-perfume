@@ -484,20 +484,23 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
         });
       }
     }
-    // Load carousel slides
-    for (let i = 1; i <= 4; i++) {
-      const title = cm[`carousel.${i}.title`];
-      const subtitle = cm[`carousel.${i}.subtitle`];
-      const image = cm[`carousel.${i}.image`];
-      if (title || subtitle || image) {
-        setCarouselSlides((prev) => {
-          const next = [...prev];
-          if (title) next[i - 1] = { ...next[i - 1], title };
-          if (subtitle) next[i - 1] = { ...next[i - 1], subtitle };
-          if (image) next[i - 1] = { ...next[i - 1], image };
-          return next;
-        });
+    // Load carousel slides (dynamic count)
+    {
+      const count = cm["carousel.count"]
+        ? Number.parseInt(cm["carousel.count"])
+        : 4;
+      const loaded: Array<{
+        title: string;
+        subtitle: string;
+        image: string | undefined;
+      }> = [];
+      for (let i = 1; i <= count; i++) {
+        const title = cm[`carousel.${i}.title`] ?? `Slide ${i}`;
+        const subtitle = cm[`carousel.${i}.subtitle`] ?? "";
+        const image = cm[`carousel.${i}.image`] ?? undefined;
+        loaded.push({ title, subtitle, image });
       }
+      if (loaded.length > 0) setCarouselSlides(loaded);
     }
     // Load settings
     if (cm["settings.whatsapp"]) setSiteWhatsapp(cm["settings.whatsapp"]);
@@ -594,6 +597,7 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
 
   const saveCarousel = () => {
     const updates: Record<string, string> = {};
+    updates["carousel.count"] = String(carouselSlides.length);
     carouselSlides.forEach((slide, i) => {
       updates[`carousel.${i + 1}.title`] = slide.title;
       updates[`carousel.${i + 1}.subtitle`] = slide.subtitle;
@@ -915,19 +919,84 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
       title: "Carousel Slides",
       content: (
         <div className="space-y-5" data-ocid="admin.carousel.section">
-          <p className="text-muted-foreground text-xs">
-            Edit the 4 main product image slides in the hero carousel.
-          </p>
+          {/* Header row */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Hero Carousel Slides
+              </p>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                {carouselSlides.length} slide
+                {carouselSlides.length !== 1 ? "s" : ""} · Upload images, edit
+                titles and subtitles
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setCarouselSlides((prev) => [
+                  ...prev,
+                  {
+                    title: `New Slide ${prev.length + 1}`,
+                    subtitle: "New Arrival",
+                    image: undefined,
+                  },
+                ])
+              }
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border-2 border-dashed border-teal-500/60 text-teal-400 hover:bg-teal-500/10 hover:border-teal-400 transition-all"
+              data-ocid="admin.carousel.add_slide_button"
+            >
+              <span className="text-base leading-none">+</span> Add Slide
+            </button>
+          </div>
+
           {carouselSlides.map((slide, i) => (
             <div
               key={`carousel-slide-${i + 1}`}
-              className="bg-obsidian-2 rounded-xl p-4 border border-border"
+              className="bg-obsidian-2 rounded-xl p-4 border border-border relative"
               data-ocid={`admin.carousel.item.${i + 1}`}
             >
-              <p className="text-gold text-xs font-bold uppercase tracking-wider mb-3">
-                Slide {i + 1}
-              </p>
-              <div className="grid sm:grid-cols-2 gap-4 mb-3">
+              {/* Slide header with delete button */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-teal-400 text-xs font-bold uppercase tracking-wider">
+                  Slide {i + 1}
+                </span>
+                {carouselSlides.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCarouselSlides((prev) =>
+                        prev.filter((_, j) => j !== i),
+                      )
+                    }
+                    className="text-xs text-red-400/70 hover:text-red-400 flex items-center gap-1 px-2 py-1 rounded hover:bg-red-500/10 transition-all"
+                    data-ocid={`admin.carousel.${i + 1}.delete_button`}
+                  >
+                    🗑 Remove
+                  </button>
+                )}
+              </div>
+
+              {/* Image upload - full width, prominent */}
+              <div className="mb-4">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+                  Slide Image
+                </Label>
+                <ImageDropZone
+                  currentSrc={slide.image}
+                  fallbackSrc="/assets/generated/hero-carousel-1.dim_800x600.jpg"
+                  label={slide.title}
+                  onImageChange={(url) =>
+                    setCarouselSlides((prev) =>
+                      prev.map((s, j) => (j === i ? { ...s, image: url } : s)),
+                    )
+                  }
+                  ocid={`admin.carousel.${i + 1}.image.dropzone`}
+                />
+              </div>
+
+              {/* Title & subtitle below image */}
+              <div className="grid sm:grid-cols-2 gap-4">
                 <EditableField
                   label="Title"
                   value={slide.title}
@@ -949,25 +1018,14 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
                   ocid={`admin.carousel.${i + 1}.subtitle.input`}
                 />
               </div>
-              <div>
-                <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
-                  Slide Image
-                </Label>
-                <ImageDropZone
-                  currentSrc={slide.image}
-                  fallbackSrc="/assets/generated/hero-carousel-1.dim_800x600.jpg"
-                  label={slide.title}
-                  onImageChange={(url) =>
-                    setCarouselSlides((prev) =>
-                      prev.map((s, j) => (j === i ? { ...s, image: url } : s)),
-                    )
-                  }
-                  ocid={`admin.carousel.${i + 1}.image.dropzone`}
-                />
-              </div>
             </div>
           ))}
-          <div className="flex justify-end">
+
+          {/* Save */}
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-xs text-muted-foreground">
+              Changes apply live after saving.
+            </p>
             <SaveBtn
               onClick={saveCarousel}
               saving={saving === "carousel"}

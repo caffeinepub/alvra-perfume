@@ -25,7 +25,8 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion, useInView } from "motion/react";
-import React, { createContext, useContext } from "react";
+import type React from "react";
+import { createContext, useContext } from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DinoGame, DinoGameModal } from "./components/DinoGame";
@@ -99,30 +100,6 @@ function FadeIn({
     >
       {children}
     </motion.div>
-  );
-}
-
-// ─── Section Heading ───────────────────────────────────────────────────────────────────
-function SectionHeading({
-  title,
-  subtitle,
-}: { title: string; subtitle?: string }) {
-  return (
-    <div className="text-center mb-14">
-      <h2 className="font-display text-4xl md:text-5xl font-bold text-gold mb-4">
-        {title}
-      </h2>
-      {subtitle && (
-        <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-          {subtitle}
-        </p>
-      )}
-      <div className="flex items-center justify-center gap-3 mt-5">
-        <div className="h-0.5 w-20 rounded-full bg-gold" />
-        <div className="w-2 h-2 rounded-full bg-gold" />
-        <div className="h-0.5 w-20 rounded-full bg-gold" />
-      </div>
-    </div>
   );
 }
 
@@ -217,149 +194,6 @@ const _TICKER_ITEMS = [
     sub: "Bundle Offer",
   },
 ];
-
-// ─── Custom Sectors types ───────────────────────────────────────────────────────────────────────
-type CustomSector = {
-  id: string;
-  name: string;
-  tagline: string;
-  price: string;
-  style: string;
-  image?: string;
-};
-
-const SECTOR_STYLE_MAP: Record<
-  string,
-  { bg: string; text: string; sub: string; border: string; badge: string }
-> = {
-  Minimal: {
-    bg: "bg-white",
-    text: "text-gray-900",
-    sub: "text-gray-500",
-    border: "border border-gray-200",
-    badge: "bg-gray-100 text-gray-700",
-  },
-  Bold: {
-    bg: "bg-gray-950",
-    text: "text-white",
-    sub: "text-yellow-400",
-    border: "border border-yellow-500",
-    badge: "bg-yellow-500 text-black",
-  },
-  Elegant: {
-    bg: "bg-amber-50",
-    text: "text-amber-900 font-semibold",
-    sub: "text-amber-700",
-    border: "border border-amber-300",
-    badge: "bg-amber-200 text-amber-900",
-  },
-  "Dark Luxury": {
-    bg: "bg-zinc-950",
-    text: "text-amber-300",
-    sub: "text-amber-200/70",
-    border: "border border-amber-700/50",
-    badge: "bg-amber-700/30 text-amber-300",
-  },
-  Floral: {
-    bg: "bg-pink-50",
-    text: "text-rose-800",
-    sub: "text-rose-600",
-    border: "border border-pink-200",
-    badge: "bg-pink-200 text-rose-800",
-  },
-  Fresh: {
-    bg: "bg-teal-50",
-    text: "text-teal-900",
-    sub: "text-teal-600",
-    border: "border border-teal-200",
-    badge: "bg-teal-200 text-teal-800",
-  },
-};
-
-function CustomSectorsSection() {
-  const [sectors, setSectors] = React.useState<CustomSector[]>([]);
-
-  React.useEffect(() => {
-    const cm = readAll();
-    if (cm["custom.sectors"]) {
-      try {
-        const parsed = JSON.parse(cm["custom.sectors"]) as CustomSector[];
-        if (Array.isArray(parsed)) setSectors(parsed);
-      } catch {
-        /* ignore */
-      }
-    }
-    const unsub = onContentUpdate(() => {
-      const cm2 = readAll();
-      if (cm2["custom.sectors"]) {
-        try {
-          const parsed = JSON.parse(cm2["custom.sectors"]) as CustomSector[];
-          if (Array.isArray(parsed)) setSectors(parsed);
-        } catch {
-          /* ignore */
-        }
-      }
-    });
-    return unsub;
-  }, []);
-
-  if (sectors.length === 0) return null;
-
-  return (
-    <section className="py-24 bg-obsidian-2" data-ocid="custom.sectors.section">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn>
-          <SectionHeading
-            title="Our Perfume Collections"
-            subtitle="Curated collections for every personality and occasion."
-          />
-        </FadeIn>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sectors.map((sector, i) => {
-            const styles =
-              SECTOR_STYLE_MAP[sector.style] ?? SECTOR_STYLE_MAP.Minimal;
-            return (
-              <FadeIn key={sector.id} delay={i * 0.1}>
-                <div
-                  className={`rounded-2xl overflow-hidden shadow-lg ${styles.bg} ${styles.border} flex flex-col`}
-                  data-ocid={`custom.sectors.item.${i + 1}`}
-                >
-                  {sector.image && (
-                    <div className="w-full aspect-video overflow-hidden">
-                      <img
-                        src={sector.image}
-                        alt={sector.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6 flex flex-col gap-2 flex-1">
-                    <span
-                      className={`self-start text-xs font-bold px-2 py-0.5 rounded-full ${styles.badge}`}
-                    >
-                      {sector.style}
-                    </span>
-                    <h3 className={`text-xl font-bold ${styles.text}`}>
-                      {sector.name}
-                    </h3>
-                    <p className={`text-sm ${styles.sub}`}>{sector.tagline}</p>
-                    {sector.price && (
-                      <p
-                        className={`text-lg font-bold mt-auto pt-3 ${styles.text}`}
-                      >
-                        {sector.price}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </FadeIn>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // ─── Header ──────────────────────────────────────────────────────────────────────────────────
 function Header({
@@ -744,16 +578,58 @@ function HeroCarousel({
   const [active, setActive] = useState(0);
   const [showGamePopup, setShowGamePopup] = useState(false);
   const [_autoPlay, setAutoPlay] = useState(false);
+  const [dynamicSlides, setDynamicSlides] = useState(CAROUSEL_SLIDES);
+
+  // Load slides from content store
+  const loadSlides = () => {
+    const cm = readAll();
+    const count = cm["carousel.count"]
+      ? Number.parseInt(cm["carousel.count"])
+      : 0;
+    if (count > 0) {
+      const loaded: typeof CAROUSEL_SLIDES = [];
+      for (let i = 1; i <= count; i++) {
+        const base = CAROUSEL_SLIDES[i - 1] || CAROUSEL_SLIDES[0];
+        loaded.push({
+          id: i,
+          image: cm[`carousel.${i}.image`] || base.image,
+          title: cm[`carousel.${i}.title`] || base.title,
+          subtitle: cm[`carousel.${i}.subtitle`] || base.subtitle,
+          tag: base.tag || "New",
+          gradient:
+            base.gradient || "from-teal-900/80 via-transparent to-transparent",
+        } as (typeof CAROUSEL_SLIDES)[0]);
+      }
+      setDynamicSlides(loaded);
+    } else {
+      // Apply any individual overrides to the static slides
+      const updated = CAROUSEL_SLIDES.map((s, i) => ({
+        ...s,
+        image: cm[`carousel.${i + 1}.image`] || s.image,
+        title: cm[`carousel.${i + 1}.title`] || s.title,
+        subtitle: cm[`carousel.${i + 1}.subtitle`] || s.subtitle,
+      }));
+      setDynamicSlides(updated);
+    }
+  };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: loadSlides is stable
+  useEffect(() => {
+    loadSlides();
+    return onContentUpdate(loadSlides);
+  }, []);
 
   // Auto-advance every 5 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setActive((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
+      setActive((prev) => (prev + 1) % dynamicSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [dynamicSlides.length]);
 
-  const slide = CAROUSEL_SLIDES[active];
+  const slide =
+    dynamicSlides[Math.min(active, dynamicSlides.length - 1)] ||
+    dynamicSlides[0];
 
   return (
     <section
@@ -1001,7 +877,7 @@ function HeroCarousel({
           onClick={() => {
             setAutoPlay(false);
             setActive(
-              (p) => (p - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length,
+              (p) => (p - 1 + dynamicSlides.length) % dynamicSlides.length,
             );
           }}
           className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-colors z-10"
@@ -1013,7 +889,7 @@ function HeroCarousel({
           type="button"
           onClick={() => {
             setAutoPlay(false);
-            setActive((p) => (p + 1) % CAROUSEL_SLIDES.length);
+            setActive((p) => (p + 1) % dynamicSlides.length);
           }}
           className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-colors z-10"
           data-ocid="carousel.pagination_next"
@@ -1023,7 +899,7 @@ function HeroCarousel({
 
         {/* Dot indicators */}
         <div className="absolute bottom-3 right-4 flex items-center gap-1.5 z-10">
-          {CAROUSEL_SLIDES.map((s, i) => (
+          {dynamicSlides.map((s, i) => (
             <button
               key={`dot-${s.id}`}
               type="button"
@@ -1816,332 +1692,50 @@ function GameSection() {
     <section
       id="play-win"
       data-ocid="game.section"
-      className="py-24 relative overflow-hidden"
-      style={{
-        background:
-          "linear-gradient(135deg, oklch(0.36 0.13 205) 0%, oklch(0.48 0.16 188) 50%, oklch(0.42 0.15 175) 100%)",
-      }}
+      className="py-10 bg-gradient-to-br from-teal-700 to-emerald-800"
     >
-      {/* Background circles */}
-      <div
-        className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none opacity-20"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)",
-          transform: "translate(30%, -30%)",
-        }}
-      />
-      <div
-        className="absolute bottom-0 left-0 w-64 h-64 rounded-full pointer-events-none opacity-15"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)",
-          transform: "translate(-30%, 30%)",
-        }}
-      />
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
         <FadeIn>
-          <div className="mb-4">
-            <span
-              className="text-xs font-bold tracking-[0.25em] uppercase px-4 py-2 rounded-full"
-              style={{
-                background: "rgba(255,255,255,0.15)",
-                color: "rgba(255,255,255,0.9)",
-                border: "1px solid rgba(255,255,255,0.2)",
-              }}
-            >
-              🎮 Play & Win
-            </span>
-          </div>
-          <h2
-            className="font-display font-black text-white mb-4"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
-          >
+          <span className="inline-block text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 text-white border border-white/30 mb-3">
+            🎮 Play & Win
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
             Win Free Perfume
           </h2>
-          <p className="text-white/75 text-lg mb-10 max-w-lg mx-auto">
+          <p className="text-teal-100 text-sm mb-6 max-w-md mx-auto">
             Play the Dino challenge and unlock exclusive discount coupons on
             your next purchase.
           </p>
         </FadeIn>
 
-        <FadeIn delay={0.2}>
-          <div
-            className="rounded-3xl p-8 md:p-10"
-            style={{
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            {/* Reward tiers */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
-              {[
-                { score: "500+", reward: "₹20 OFF", icon: "🎯" },
-                { score: "1000+", reward: "₹50 OFF", icon: "🏆" },
-                { score: "2000+", reward: "₹100 OFF", icon: "💫" },
-                { score: "3000+", reward: "₹150 OFF", icon: "⚡" },
-                { score: "5000+", reward: "₹200 OFF", icon: "🔥" },
-                { score: "10000+", reward: "FREE PERFUME", icon: "🎉" },
-              ].map((tier) => (
-                <div
-                  key={tier.score}
-                  className="rounded-xl px-3 py-3 text-center"
-                  style={{
-                    background: "rgba(255,255,255,0.12)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                  }}
-                >
-                  <div className="text-xl mb-1">{tier.icon}</div>
-                  <div className="text-white font-bold text-sm">
-                    {tier.score}
-                  </div>
-                  <div className="text-white/70 text-xs mt-0.5">
-                    {tier.reward}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-center">
-              <DinoGameModal />
-            </div>
-            <DinoLeaderboard />
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-// ─── Launch Offer Section ───────────────────────────────────────────────────────────────────────
-function OfferAndEMISection() {
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const inclusions = [
-    { icon: Package, text: "50ml perfume" },
-    { icon: Zap, text: "Mini travel spray" },
-    { icon: Heart, text: "Thank you card" },
-    { icon: Award, text: "Exclusive coupon code" },
-    { icon: Leaf, text: "Flower seeds gift" },
-  ];
-
-  return (
-    <section
-      id="offers"
-      data-ocid="offer.section"
-      className="py-16 bg-background"
-    >
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
-        <FadeIn>
-          <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
-            {/* Header */}
-            <div className="px-6 pt-6 pb-4 border-b border-border">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">🔥</span>
-                <h2 className="font-luxury text-2xl font-black text-foreground">
-                  Launch Offer + Easy EMI
-                </h2>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                Everything in the box. Pay your way.
-              </p>
-            </div>
-
-            {/* Inclusions */}
-            <div className="px-6 py-4 border-b border-border">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                What's included
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {inclusions.map((item) => (
-                  <div
-                    key={item.text}
-                    className="flex items-center gap-2 text-sm text-foreground"
-                  >
-                    <item.icon className="w-4 h-4 text-gold flex-shrink-0" />
-                    <span>{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* EMI pricing */}
-            <div className="px-6 py-4 border-b border-border">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-foreground text-sm">
-                  💳 Buy via EMI
-                </h3>
-                <span
-                  className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
-                  style={{ background: "oklch(0.52 0.18 145)" }}
-                >
-                  EMI DISCOUNT
-                </span>
-              </div>
-              <p className="text-muted-foreground text-xs mb-3">
-                Exclusive discount — only when you choose EMI at checkout
-              </p>
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div className="rounded-xl border border-border p-3 text-center">
-                  <div className="text-xl font-bold text-gold font-luxury">
-                    ₹199
-                  </div>
-                  <div className="text-muted-foreground text-xs">Pay today</div>
-                </div>
-                <div className="rounded-xl border border-border p-3 text-center">
-                  <div className="text-xl font-bold text-foreground font-luxury">
-                    ₹150<span className="text-xs">/wk</span>
-                  </div>
-                  <div className="text-muted-foreground text-xs">× 3 weeks</div>
-                </div>
-              </div>
-              <div className="space-y-1.5 mb-3">
-                {[
-                  {
-                    week: "Today",
-                    amount: "₹199",
-                    note: "Pay & get it delivered",
-                  },
-                  { week: "Week 1", amount: "₹150", note: "Auto-deducted" },
-                  { week: "Week 2", amount: "₹150", note: "Auto-deducted" },
-                  { week: "Week 3", amount: "₹150", note: "Final payment" },
-                ].map((row) => (
-                  <div
-                    key={row.week}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-foreground text-sm">
-                        {row.week}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-gold font-semibold text-sm">
-                        {row.amount}
-                      </span>
-                      <span className="text-muted-foreground text-xs hidden sm:inline">
-                        {row.note}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="text-xs text-muted-foreground mb-3">
-                Total via EMI: <span className="line-through">₹799</span> →{" "}
-                <span className="text-gold font-semibold">₹649</span>
-              </div>
-              <Button
-                size="default"
-                onClick={() => scrollTo("shop")}
-                className="w-full bg-gold text-white font-semibold hover:bg-gold-bright transition-colors rounded-xl"
-                data-ocid="offer.emi.primary_button"
+        <FadeIn delay={0.15}>
+          {/* Reward tiers — compact horizontal pills */}
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
+            {[
+              { score: "500+", reward: "₹20 OFF", icon: "🎯" },
+              { score: "1000+", reward: "₹50 OFF", icon: "🏆" },
+              { score: "2000+", reward: "₹100 OFF", icon: "💫" },
+              { score: "3000+", reward: "₹150 OFF", icon: "⚡" },
+              { score: "5000+", reward: "₹200 OFF", icon: "🔥" },
+              { score: "10000+", reward: "FREE PERFUME", icon: "🎉" },
+            ].map((tier) => (
+              <div
+                key={tier.score}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-sm"
               >
-                Buy with EMI — Pay ₹199 Now
-              </Button>
-            </div>
-
-            {/* Full price option */}
-            <div className="px-6 py-4 flex items-center justify-between">
-              <p className="text-muted-foreground text-sm">
-                Prefer full price?{" "}
-                <span className="text-foreground font-medium">
-                  ₹799 one-time
-                </span>{" "}
-                <span className="text-xs text-muted-foreground">
-                  (no EMI discount)
-                </span>
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => scrollTo("shop")}
-                className="border-border text-foreground hover:border-gold hover:text-gold transition-colors rounded-xl ml-4 flex-shrink-0"
-                data-ocid="offer.fullprice.secondary_button"
-              >
-                Buy ₹799
-              </Button>
-            </div>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-// ─── Why Choose Section ────────────────────────────────────────────────────────────────────────────────
-function WhySection() {
-  const cm = useContext(ContentContext);
-  const ICON_MAP = [Clock, Leaf, Sparkles, Heart];
-  const DEFAULT_FEATURES = [
-    {
-      title: "Long lasting fragrance",
-      desc: "Our fragrances last 10–14 hours, keeping you fresh all day and night.",
-    },
-    {
-      title: "Premium ingredients",
-      desc: "Sourced from the world's finest fragrance houses. No compromise on quality.",
-    },
-    {
-      title: "Modern scent profiles",
-      desc: "Contemporary interpretations of classic oriental and floral notes.",
-    },
-    {
-      title: "Formal & Party occasions",
-      desc: "Purpose-built fragrances for every moment of your life.",
-    },
-  ];
-  const features = DEFAULT_FEATURES.map((f, i) => ({
-    icon: ICON_MAP[i],
-    title: cm[`why.${i + 1}.title`] ?? f.title,
-    desc: cm[`why.${i + 1}.desc`] ?? f.desc,
-  }));
-
-  return (
-    <section data-ocid="why.section" className="py-24 bg-obsidian-2">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn>
-          <SectionHeading
-            title="Why Choose ALVRA"
-            subtitle="Built on the promise of lasting impressions."
-          />
-        </FadeIn>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, i) => (
-            <FadeIn key={feature.title} delay={i * 0.1}>
-              <div className="group bg-white border border-border rounded-2xl p-6 card-hover text-center h-full shadow-sm">
-                <div
-                  className="w-14 h-14 rounded-2xl border flex items-center justify-center mx-auto mb-4 transition-all"
-                  style={{
-                    background: "oklch(0.95 0.04 195)",
-                    borderColor: "oklch(0.84 0.08 186)",
-                    borderWidth: "1px",
-                  }}
-                >
-                  <feature.icon
-                    className="w-6 h-6 transition-colors"
-                    style={{ color: "oklch(0.58 0.16 186)" }}
-                  />
-                </div>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <CheckCircle2 className="w-4 h-4 text-gold" />
-                  <h3 className="font-bold text-foreground">{feature.title}</h3>
-                </div>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "rgba(255,255,255,0.6)" }}
-                >
-                  {feature.desc}
-                </p>
+                <span>{tier.icon}</span>
+                <span className="font-bold text-white">{tier.score}</span>
+                <span className="text-teal-200">·</span>
+                <span className="text-teal-100 font-medium">{tier.reward}</span>
               </div>
-            </FadeIn>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center mb-4">
+            <DinoGameModal />
+          </div>
+          <DinoLeaderboard />
+        </FadeIn>
       </div>
     </section>
   );
@@ -2155,148 +1749,50 @@ function Footer() {
 
   return (
     <footer
-      id="contact"
-      data-ocid="footer.section"
-      className="border-t border-border py-16"
-      style={{
-        background:
-          "linear-gradient(135deg, #042f2e 0%, #065a5a 50%, #042f2e 100%)",
-        color: "white",
-      }}
+      className="border-t py-6 text-center"
+      style={{ background: "#042f2e", color: "rgba(255,255,255,0.5)" }}
     >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Brand */}
-        <div className="text-center mb-12">
-          <h2
-            className="font-luxury text-4xl font-black tracking-[0.4em] mb-2"
-            style={{
-              color: "#2dd4bf",
-              textShadow: "0 0 20px rgba(45,212,191,0.3)",
-            }}
+      <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <span
+          style={{ color: "#2dd4bf", fontWeight: 700, letterSpacing: "0.2em" }}
+        >
+          ALVRA
+        </span>
+        <div className="flex items-center gap-4">
+          <a
+            href="https://wa.me/918787673730"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors"
           >
-            ALVRA
-          </h2>
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <div
-              className="h-0.5 w-12"
-              style={{ background: "rgba(45,212,191,0.4)" }}
-            />
-            <p
-              className="text-xs tracking-widest uppercase"
-              style={{ color: "rgba(94,234,212,0.6)" }}
-            >
-              Premium Fragrances
-            </p>
-            <div
-              className="h-0.5 w-12"
-              style={{ background: "rgba(45,212,191,0.4)" }}
-            />
-          </div>
+            WhatsApp
+          </a>
+          <a
+            href="mailto:kmsworld29@gmail.com"
+            className="hover:text-white transition-colors"
+          >
+            Email
+          </a>
+          <a
+            href="https://instagram.com/alvra.officiai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors"
+          >
+            Instagram
+          </a>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {/* About */}
-          <div>
-            <h3
-              className="font-bold mb-4 text-sm uppercase tracking-wider"
-              style={{ color: "rgba(45,212,191,0.9)" }}
-            >
-              About ALVRA
-            </h3>
-            <p
-              className="text-sm leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.6)" }}
-            >
-              Luxury fragrances crafted for the modern Indian. From formal
-              elegance to party nights — ALVRA defines your signature scent.
-            </p>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h3
-              className="font-bold mb-4 text-sm uppercase tracking-wider"
-              style={{ color: "rgba(45,212,191,0.9)" }}
-            >
-              Get in Touch
-            </h3>
-            <div className="space-y-3">
-              <a
-                href="https://wa.me/918787673730"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 transition-colors text-sm"
-                style={{ color: "rgba(255,255,255,0.65)" }}
-                data-ocid="footer.whatsapp.link"
-              >
-                <MessageCircle className="w-4 h-4 text-green-500" />
-                <span>WhatsApp: 8787673730</span>
-              </a>
-              <a
-                href="mailto:kmsworld29@gmail.com"
-                className="flex items-center gap-3 transition-colors text-sm"
-                style={{ color: "rgba(255,255,255,0.65)" }}
-                data-ocid="footer.email.link"
-              >
-                <Mail className="w-4 h-4 text-gold" />
-                <span>kmsworld29@gmail.com</span>
-              </a>
-              <a
-                href="https://instagram.com/alvra.officiai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 transition-colors text-sm"
-                style={{ color: "rgba(255,255,255,0.65)" }}
-                data-ocid="footer.instagram.link"
-              >
-                <Instagram className="w-4 h-4 text-pink-500" />
-                <span>@alvra.officiai</span>
-              </a>
-            </div>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h3
-              className="font-bold mb-4 text-sm uppercase tracking-wider"
-              style={{ color: "rgba(45,212,191,0.9)" }}
-            >
-              Quick Links
-            </h3>
-            <div className="space-y-2">
-              {["Privacy Policy", "Terms & Conditions", "Support"].map(
-                (link) => (
-                  <button
-                    type="button"
-                    key={link}
-                    className="block transition-colors text-sm text-left w-full"
-                    style={{ color: "rgba(255,255,255,0.55)" }}
-                  >
-                    {link}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom bar */}
-        <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-muted-foreground text-xs">
-          <p style={{ color: "rgba(255,255,255,0.5)" }}>
-            © {currentYear} ALVRA. All rights reserved.
-          </p>
-          <p>
-            Built with <Heart className="w-3 h-3 text-gold inline" /> using{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(hostname)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gold hover:text-gold-bright transition-colors"
-            >
-              caffeine.ai
-            </a>
-          </p>
-        </div>
+        <p>
+          © {currentYear} ·{" "}
+          <a
+            href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(hostname)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors"
+          >
+            caffeine.ai
+          </a>
+        </p>
       </div>
     </footer>
   );
@@ -2373,9 +1869,6 @@ function HomePage({
         <main>
           <ProductsSection onAddToCart={handleAddToCart} />
           <GameSection />
-          <CustomSectorsSection />
-          <OfferAndEMISection />
-          <WhySection />
         </main>
         <Footer />
       </div>
