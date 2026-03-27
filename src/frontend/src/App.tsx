@@ -537,6 +537,16 @@ function PromoTicker() {
 }
 
 // ─── Hero Carousel ──────────────────────────────────────────────────────────────────────
+const DINO_SLIDE = {
+  id: 0,
+  image: "/assets/generated/dino-game-banner.dim_800x400.jpg",
+  title: "ALVRA Runner",
+  subtitle: "Play & Win FREE Perfume!",
+  tag: "Play Now",
+  gradient: "from-teal-900/80 via-transparent to-transparent",
+  link: "game",
+};
+
 const CAROUSEL_SLIDES = [
   {
     id: 1,
@@ -600,7 +610,7 @@ function HeroCarousel({
             base.gradient || "from-teal-900/80 via-transparent to-transparent",
         } as (typeof CAROUSEL_SLIDES)[0]);
       }
-      setDynamicSlides(loaded);
+      setDynamicSlides([DINO_SLIDE as any, ...loaded]);
     } else {
       // Apply any individual overrides to the static slides
       const updated = CAROUSEL_SLIDES.map((s, i) => ({
@@ -609,7 +619,7 @@ function HeroCarousel({
         title: cm[`carousel.${i + 1}.title`] || s.title,
         subtitle: cm[`carousel.${i + 1}.subtitle`] || s.subtitle,
       }));
-      setDynamicSlides(updated);
+      setDynamicSlides([DINO_SLIDE as any, ...updated]);
     }
   };
 
@@ -638,10 +648,7 @@ function HeroCarousel({
       className="relative bg-muted overflow-hidden"
     >
       {/* Main image */}
-      <div
-        className="relative w-full"
-        style={{ aspectRatio: "4/3", maxHeight: 420 }}
-      >
+      <div className="relative w-full" style={{ height: "min(56vw, 420px)" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}
@@ -661,11 +668,22 @@ function HeroCarousel({
             {(slide as any).link ? (
               <div
                 className="w-full h-full relative overflow-hidden flex flex-col items-center justify-center"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #0a0a1a 0%, #0d2535 35%, #0a3d2e 65%, #071a12 100%)",
-                }}
+                style={{ background: "#071a12" }}
               >
+                {/* Banner image as background */}
+                <img
+                  src={slide.image}
+                  alt="ALVRA Runner"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ opacity: 0.55 }}
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(10,10,26,0.6) 0%, rgba(13,37,53,0.5) 35%, rgba(10,61,46,0.5) 65%, rgba(7,26,18,0.6) 100%)",
+                  }}
+                />
                 <style>{`
                   @keyframes dino-run { 0%,100%{transform:translateY(0) scaleX(1)} 25%{transform:translateY(-8px) scaleX(1)} 50%{transform:translateY(-3px) scaleX(-1)} 75%{transform:translateY(-10px) scaleX(-1)} }
                   @keyframes neon-pulse { 0%,100%{text-shadow:0 0 10px #00ff88,0 0 30px #00ff88,0 0 60px #00cc66} 50%{text-shadow:0 0 20px #00ffaa,0 0 50px #00ffaa,0 0 90px #00ff88} }
