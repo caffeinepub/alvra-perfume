@@ -672,12 +672,6 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
   }
 
   // ─── Section definitions ──────────────────────────────────────────────────
-  const PRODUCT_FALLBACKS = [
-    "men-formal",
-    "men-party",
-    "women-formal",
-    "women-party",
-  ];
 
   const sectionDefs: Record<
     string,
@@ -708,7 +702,7 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
             </Label>
             <ImageDropZone
               currentSrc={heroImage}
-              fallbackSrc="/assets/generated/hero-perfume.dim_800x900.png"
+              fallbackSrc="/assets/generated/perfume-men.dim_400x500.jpg"
               label="Hero Image"
               onImageChange={setHeroImage}
               ocid="admin.hero.image.dropzone"
@@ -780,7 +774,7 @@ export default function AdminPage({ onNavigate }: AdminPageProps) {
                 </Label>
                 <ImageDropZone
                   currentSrc={p.image}
-                  fallbackSrc={`/assets/generated/${PRODUCT_FALLBACKS[i]}.dim_400x500.png`}
+                  fallbackSrc="/assets/generated/perfume-men.dim_400x500.jpg"
                   label={p.name}
                   onImageChange={(url) =>
                     setProducts((prev) =>

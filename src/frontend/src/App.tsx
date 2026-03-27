@@ -112,7 +112,7 @@ function getProducts(cm: Record<string, string> = readAll()) {
       description:
         "A crisp, woody fragrance with notes of cedar & musk — perfect for boardrooms and formal events.",
       price: "₹799",
-      image: "/assets/generated/men-formal.dim_400x500.png",
+      image: "/assets/generated/perfume-men.dim_400x500.jpg",
       tag: "Bestseller",
       category: "Formal",
     },
@@ -122,7 +122,7 @@ function getProducts(cm: Record<string, string> = readAll()) {
       description:
         "Bold & intense with hints of oud and spice — made for nights you'll never forget.",
       price: "₹799",
-      image: "/assets/generated/men-party.dim_400x500.png",
+      image: "/assets/generated/perfume-men.dim_400x500.jpg",
       tag: "New",
       category: "Party",
     },
@@ -132,7 +132,7 @@ function getProducts(cm: Record<string, string> = readAll()) {
       description:
         "Delicate floral notes of rose & jasmine — elegance in every spritz.",
       price: "₹799",
-      image: "/assets/generated/women-formal.dim_400x500.png",
+      image: "/assets/generated/perfume-women.dim_400x500.jpg",
       tag: "Popular",
       category: "Formal",
     },
@@ -142,7 +142,7 @@ function getProducts(cm: Record<string, string> = readAll()) {
       description:
         "Sensual and alluring with vanilla & amber — captivate every room you enter.",
       price: "₹799",
-      image: "/assets/generated/women-party.dim_400x500.png",
+      image: "/assets/generated/perfume-women.dim_400x500.jpg",
       tag: "Limited",
       category: "Party",
     },
@@ -1334,10 +1334,10 @@ function MiniProductCard({
             src={
               product.image ||
               (product.name.toLowerCase().includes("men")
-                ? "/assets/generated/perfume-men.dim_400x500.png"
+                ? "/assets/generated/perfume-men.dim_400x500.jpg"
                 : product.name.toLowerCase().includes("women")
-                  ? "/assets/generated/perfume-women.dim_400x500.png"
-                  : "/assets/generated/perfume-teal.dim_400x500.png")
+                  ? "/assets/generated/perfume-women.dim_400x500.jpg"
+                  : "/assets/generated/perfume-teal.dim_400x500.jpg")
             }
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"

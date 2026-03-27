@@ -31,22 +31,22 @@ const STATIC_PRODUCTS = [
   {
     id: 1n,
     name: "Men Formal",
-    image: "/assets/generated/men-formal.dim_400x500.png",
+    image: "/assets/generated/perfume-men.dim_400x500.jpg",
   },
   {
     id: 2n,
     name: "Men Party",
-    image: "/assets/generated/men-party.dim_400x500.png",
+    image: "/assets/generated/perfume-men.dim_400x500.jpg",
   },
   {
     id: 3n,
     name: "Women Formal",
-    image: "/assets/generated/women-formal.dim_400x500.png",
+    image: "/assets/generated/perfume-women.dim_400x500.jpg",
   },
   {
     id: 4n,
     name: "Women Party",
-    image: "/assets/generated/women-party.dim_400x500.png",
+    image: "/assets/generated/perfume-women.dim_400x500.jpg",
   },
 ];
 
@@ -82,7 +82,7 @@ export default function CartPage({ onNavigate }: CartPageProps) {
       image:
         backend?.imageUrl ??
         staticProduct?.image ??
-        "/assets/generated/men-formal.dim_400x500.png",
+        "/assets/generated/perfume-men.dim_400x500.jpg",
       price: backend ? Number(backend.price) : ITEM_PRICE,
     };
   };
