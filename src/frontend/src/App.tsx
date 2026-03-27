@@ -539,7 +539,8 @@ function PromoTicker() {
 // ─── Hero Carousel ──────────────────────────────────────────────────────────────────────
 const DINO_SLIDE = {
   id: 0,
-  image: "/assets/generated/dino-game-banner.dim_800x400.jpg",
+  image:
+    "/assets/uploads/img-20260320-wa0000-019d2efd-ef30-77dd-82ec-a7412d54238b-1.jpg",
   title: "ALVRA Runner",
   subtitle: "Play & Win FREE Perfume!",
   tag: "Play Now",
@@ -666,198 +667,13 @@ function HeroCarousel({
             }}
           >
             {(slide as any).link ? (
-              <div
-                className="w-full h-full relative overflow-hidden flex flex-col items-center justify-center"
-                style={{ background: "#071a12" }}
-              >
-                {/* Banner image as background */}
+              <div className="w-full h-full relative overflow-hidden bg-[#e8f5f2] flex items-center justify-center">
                 <img
                   src={slide.image}
-                  alt="ALVRA Runner"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ opacity: 0.55 }}
+                  alt="ALVRA Runner - Discount Zone"
+                  className="w-full h-full object-contain"
+                  style={{ display: "block" }}
                 />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, rgba(10,10,26,0.6) 0%, rgba(13,37,53,0.5) 35%, rgba(10,61,46,0.5) 65%, rgba(7,26,18,0.6) 100%)",
-                  }}
-                />
-                <style>{`
-                  @keyframes dino-run { 0%,100%{transform:translateY(0) scaleX(1)} 25%{transform:translateY(-8px) scaleX(1)} 50%{transform:translateY(-3px) scaleX(-1)} 75%{transform:translateY(-10px) scaleX(-1)} }
-                  @keyframes neon-pulse { 0%,100%{text-shadow:0 0 10px #00ff88,0 0 30px #00ff88,0 0 60px #00cc66} 50%{text-shadow:0 0 20px #00ffaa,0 0 50px #00ffaa,0 0 90px #00ff88} }
-                  @keyframes float-cactus { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-                  @keyframes cta-pulse { 0%,100%{box-shadow:0 0 12px #00ff88,0 0 24px #00cc66} 50%{box-shadow:0 0 24px #00ffaa,0 0 48px #00ff88} }
-                  @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
-                  @keyframes score-blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-                `}</style>
-                {/* Scanline effect */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-10">
-                  <div
-                    style={{
-                      width: "100%",
-                      height: 2,
-                      background: "rgba(0,255,136,0.5)",
-                      animation: "scanline 3s linear infinite",
-                    }}
-                  />
-                </div>
-                {/* Stars */}
-                {[
-                  "s1",
-                  "s2",
-                  "s3",
-                  "s4",
-                  "s5",
-                  "s6",
-                  "s7",
-                  "s8",
-                  "s9",
-                  "s10",
-                  "s11",
-                  "s12",
-                  "s13",
-                  "s14",
-                  "s15",
-                  "s16",
-                  "s17",
-                  "s18",
-                  "s19",
-                  "s20",
-                ].map((k, idx) => (
-                  <div
-                    key={k}
-                    className="absolute rounded-full bg-white"
-                    style={{
-                      width: idx % 3 === 0 ? 3 : 2,
-                      height: idx % 3 === 0 ? 3 : 2,
-                      top: `${(idx * 17 + 11) % 90}%`,
-                      left: `${(idx * 23 + 7) % 95}%`,
-                      opacity: 0.4 + (idx % 4) * 0.1,
-                    }}
-                  />
-                ))}
-                {/* Floating cacti */}
-                {[
-                  { id: "c1", top: "15%", left: "8%", delay: "0s" },
-                  { id: "c2", top: "65%", left: "5%", delay: "0.8s" },
-                  { id: "c3", top: "20%", right: "10%", delay: "0.4s" },
-                  { id: "c4", top: "70%", right: "6%", delay: "1.2s" },
-                ].map((pos) => (
-                  <div
-                    key={pos.id}
-                    className="absolute text-2xl pointer-events-none"
-                    style={{
-                      ...(pos as any),
-                      animation: "float-cactus 3s ease-in-out infinite",
-                      animationDelay: pos.delay,
-                      opacity: 0.7,
-                    }}
-                  >
-                    🌵
-                  </div>
-                ))}
-                {/* Pixel ground line */}
-                <div
-                  className="absolute bottom-8 left-0 right-0 h-px"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent, #00ff88, #00cc66, #00ff88, transparent)",
-                    opacity: 0.5,
-                  }}
-                />
-                <div className="absolute bottom-6 left-0 right-0 flex justify-around px-8">
-                  {["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"].map(
-                    (k, i) => (
-                      <div
-                        key={k}
-                        className="w-2 h-2"
-                        style={{
-                          background: "#00aa55",
-                          opacity: 0.3 + (i % 3) * 0.2,
-                        }}
-                      />
-                    ),
-                  )}
-                </div>
-                {/* DINO GAME title */}
-                <div className="text-center mb-1 z-10 relative">
-                  <div
-                    className="font-black tracking-widest text-xs uppercase mb-1"
-                    style={{
-                      color: "#00ff88",
-                      letterSpacing: "0.3em",
-                      opacity: 0.8,
-                    }}
-                  >
-                    ⬛ ALVRA PRESENTS ⬛
-                  </div>
-                  <div
-                    className="font-black text-4xl sm:text-5xl uppercase tracking-tight z-10"
-                    style={{
-                      color: "#00ff88",
-                      fontFamily: "monospace",
-                      animation: "neon-pulse 2s ease-in-out infinite",
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    DINO
-                    <br />
-                    GAME
-                  </div>
-                </div>
-                {/* Dino emoji */}
-                <div
-                  className="text-5xl z-10 my-2"
-                  style={{ animation: "dino-run 1.8s ease-in-out infinite" }}
-                >
-                  🦕
-                </div>
-                {/* Prize text */}
-                <div className="z-10 text-center">
-                  <div
-                    className="font-black text-lg tracking-wide"
-                    style={{
-                      color: "#ffd700",
-                      textShadow: "0 0 15px #ffd700, 0 0 30px #ffaa00",
-                    }}
-                  >
-                    🏆 WIN FREE PERFUME
-                  </div>
-                  <div
-                    className="text-xs mt-0.5"
-                    style={{ color: "rgba(255,255,255,0.6)" }}
-                  >
-                    Score high → unlock exclusive coupon
-                  </div>
-                </div>
-                {/* Score */}
-                <div
-                  className="z-10 mt-1 font-mono text-xs"
-                  style={{
-                    color: "#00ff88",
-                    animation: "score-blink 1.5s ease-in-out infinite",
-                    opacity: 0.8,
-                  }}
-                >
-                  HIGH SCORE: ∞
-                </div>
-                {/* CTA button */}
-                <button
-                  type="button"
-                  className="z-10 mt-3 font-black text-sm px-6 py-2 rounded-none uppercase tracking-widest transition-all"
-                  style={{
-                    color: "#000",
-                    background: "#00ff88",
-                    animation: "cta-pulse 1.5s ease-in-out infinite",
-                    fontFamily: "monospace",
-                    clipPath:
-                      "polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)",
-                  }}
-                >
-                  ▶ PLAY NOW →
-                </button>
               </div>
             ) : (
               <>
