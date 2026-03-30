@@ -1746,6 +1746,341 @@ function GameSection() {
   );
 }
 
+// ─── TryRiskFree ─────────────────────────────────────────────────────────────────────────────────
+function TryRiskFree() {
+  const steps = [
+    {
+      num: "01",
+      title: "Order Your Bottle",
+      desc: "Choose your favorite ALVRA fragrance and place your order.",
+    },
+    {
+      num: "02",
+      title: "Experience the Scent",
+      desc: "Wear it for 7 days and let it become part of your story.",
+    },
+    {
+      num: "03",
+      title: "Fall in Love",
+      desc: "Find your signature scent from our curated collection.",
+    },
+    {
+      num: "04",
+      title: "100% Refund. No Questions Asked.",
+      desc: "Not satisfied? Get a full refund within 7 days of delivery.",
+    },
+  ];
+
+  return (
+    <section
+      data-ocid="try-risk-free.section"
+      className="relative overflow-hidden py-16 px-4"
+      style={{
+        background:
+          "linear-gradient(135deg, #042f2e 0%, #064e3b 40%, #022c22 70%, #020f0e 100%)",
+      }}
+    >
+      {/* Decorative floating orbs */}
+      <div
+        className="pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full opacity-20 blur-3xl"
+        style={{ background: "radial-gradient(circle, #14b8a6, transparent)" }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-16 -right-16 h-56 w-56 rounded-full opacity-15 blur-2xl"
+        style={{ background: "radial-gradient(circle, #10b981, transparent)" }}
+      />
+      {/* Diagonal shimmer lines */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(20,184,166,0.04) 40px, rgba(20,184,166,0.04) 41px)",
+        }}
+      />
+
+      <div className="relative z-10 mx-auto max-w-[480px]">
+        <FadeIn>
+          {/* Eyebrow label */}
+          <p
+            className="mb-3 text-center text-xs font-semibold tracking-[0.3em] uppercase"
+            style={{ color: "#2dd4bf" }}
+          >
+            Risk-Free Promise
+          </p>
+          {/* Main headline */}
+          <h2
+            className="mb-10 text-center text-3xl font-black uppercase leading-tight tracking-tight text-white"
+            style={{ textShadow: "0 0 40px rgba(45,212,191,0.3)" }}
+          >
+            TRY ALVRA
+            <br />
+            <span
+              style={{
+                background: "linear-gradient(90deg, #14b8a6, #34d399, #14b8a6)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              RISK FREE
+            </span>
+          </h2>
+        </FadeIn>
+
+        {/* Steps */}
+        <div className="space-y-5">
+          {steps.map((step, i) => (
+            <FadeIn key={step.num} delay={0.1 + i * 0.1}>
+              <div className="flex items-start gap-5">
+                {/* Hexagonal badge */}
+                <div className="relative flex-shrink-0">
+                  <svg
+                    width="52"
+                    height="58"
+                    viewBox="0 0 52 58"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="drop-shadow-lg"
+                    role="img"
+                    aria-label="Step number badge"
+                  >
+                    <polygon
+                      points="26,2 50,15.5 50,42.5 26,56 2,42.5 2,15.5"
+                      fill="rgba(20,184,166,0.12)"
+                      stroke="#14b8a6"
+                      strokeWidth="1.5"
+                    />
+                    <polygon
+                      points="26,8 44,18.5 44,39.5 26,50 8,39.5 8,18.5"
+                      fill="rgba(20,184,166,0.08)"
+                    />
+                  </svg>
+                  <span
+                    className="absolute inset-0 flex items-center justify-center text-sm font-black"
+                    style={{ color: "#2dd4bf" }}
+                  >
+                    {step.num}
+                  </span>
+                </div>
+                {/* Content */}
+                <div className="flex-1 pt-2">
+                  <h3
+                    className="mb-1 text-sm font-bold text-white"
+                    style={{ letterSpacing: "0.02em" }}
+                  >
+                    {step.title}
+                  </h3>
+                  <p
+                    className="text-xs leading-relaxed"
+                    style={{ color: "rgba(255,255,255,0.55)" }}
+                  >
+                    {step.desc}
+                  </p>
+                </div>
+              </div>
+              {/* Connector line between steps (not after last) */}
+              {i < steps.length - 1 && (
+                <div
+                  className="ml-[26px] mt-2 h-4 w-[2px]"
+                  style={{
+                    background:
+                      "linear-gradient(to bottom, rgba(20,184,166,0.4), rgba(20,184,166,0.08))",
+                  }}
+                />
+              )}
+            </FadeIn>
+          ))}
+        </div>
+
+        {/* CTA Button */}
+        <FadeIn delay={0.55}>
+          <div className="mt-10 text-center">
+            <button
+              type="button"
+              data-ocid="try-risk-free.primary_button"
+              className="relative inline-flex items-center gap-2 overflow-hidden rounded-full px-8 py-3 text-sm font-bold uppercase tracking-widest text-white transition-all duration-300"
+              style={{
+                background: "linear-gradient(135deg, #0d9488, #059669)",
+                boxShadow:
+                  "0 0 24px rgba(13,148,136,0.5), 0 0 48px rgba(13,148,136,0.2)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 0 32px rgba(13,148,136,0.7), 0 0 64px rgba(13,148,136,0.35)";
+                (e.currentTarget as HTMLButtonElement).style.transform =
+                  "scale(1.04)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 0 24px rgba(13,148,136,0.5), 0 0 48px rgba(13,148,136,0.2)";
+                (e.currentTarget as HTMLButtonElement).style.transform =
+                  "scale(1)";
+              }}
+            >
+              {/* Shimmer overlay */}
+              <span
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
+                  backgroundSize: "200% 100%",
+                  animation: "shimmer 2.5s infinite linear",
+                }}
+              />
+              <Sparkles className="h-4 w-4" />
+              SHOP NOW
+            </button>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+// ─── PolicyRules ──────────────────────────────────────────────────────────────────────────────────
+function PolicyRules() {
+  const policies = [
+    {
+      title: "Return Policy",
+      desc: "Full refund within 7 days of delivery. Product must be unused and in original packaging.",
+    },
+    {
+      title: "Privacy Policy",
+      desc: "Your personal data is never shared with third parties. All information is securely stored.",
+    },
+    {
+      title: "Shipping Policy",
+      desc: "Free delivery on all orders across India. Delivered within 5-7 business days.",
+    },
+    {
+      title: "Payment Policy",
+      desc: "We accept UPI, COD, and EMI. COD orders carry a ₹50 handling charge.",
+    },
+    {
+      title: "Authenticity Guarantee",
+      desc: "All ALVRA products are 100% original. We do not sell duplicates or copies.",
+    },
+  ];
+
+  return (
+    <section
+      data-ocid="policy-rules.section"
+      className="py-12 px-4"
+      style={{ background: "#020c0b" }}
+    >
+      <div className="mx-auto max-w-[600px]">
+        <FadeIn>
+          <div className="mb-8 flex flex-col items-center gap-2 text-center">
+            {/* Teal accent bar */}
+            <div
+              className="mb-2 h-[2px] w-10 rounded-full"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, #14b8a6, transparent)",
+              }}
+            />
+            <h2
+              className="text-xs font-black uppercase tracking-[0.4em]"
+              style={{ color: "#2dd4bf" }}
+            >
+              Our Policies
+            </h2>
+            <p
+              className="mt-1 text-xs"
+              style={{ color: "rgba(255,255,255,0.3)" }}
+            >
+              Simple, fair, and transparent.
+            </p>
+          </div>
+        </FadeIn>
+
+        <div
+          className="space-y-[1px] overflow-hidden rounded-xl"
+          style={{ border: "1px solid rgba(20,184,166,0.1)" }}
+        >
+          {policies.map((policy, i) => (
+            <FadeIn key={policy.title} delay={0.08 * i}>
+              <div
+                data-ocid={`policy-rules.item.${i + 1}`}
+                className="group flex items-start gap-4 px-5 py-4 transition-colors duration-200"
+                style={{
+                  background:
+                    i % 2 === 0 ? "rgba(4,47,46,0.6)" : "rgba(2,15,14,0.8)",
+                  borderBottom:
+                    i < policies.length - 1
+                      ? "1px solid rgba(20,184,166,0.07)"
+                      : "none",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.background =
+                    "rgba(20,184,166,0.07)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.background =
+                    i % 2 === 0 ? "rgba(4,47,46,0.6)" : "rgba(2,15,14,0.8)";
+                }}
+              >
+                {/* Shield icon */}
+                <div
+                  className="mt-[2px] flex-shrink-0 rounded-md p-1.5"
+                  style={{ background: "rgba(20,184,166,0.12)" }}
+                >
+                  <svg
+                    className="h-3.5 w-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    aria-label="Policy shield icon"
+                  >
+                    <path
+                      d="M12 2L4 6v6c0 5.25 3.75 10.15 8 11.35C16.25 22.15 20 17.25 20 12V6L12 2z"
+                      fill="rgba(20,184,166,0.2)"
+                      stroke="#14b8a6"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M9 12l2 2 4-4"
+                      stroke="#2dd4bf"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="mb-0.5 text-xs font-bold"
+                    style={{ color: "#e2fffe" }}
+                  >
+                    {policy.title}
+                  </p>
+                  <p
+                    className="text-xs leading-relaxed"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                  >
+                    {policy.desc}
+                  </p>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+
+        <FadeIn delay={0.45}>
+          <p
+            className="mt-5 text-center text-[10px] leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.22)" }}
+          >
+            * By purchasing from ALVRA, you agree to our terms and policies
+            listed above.
+          </p>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
 // ─── Footer ──────────────────────────────────────────────────────────────────────────────────────
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -1875,6 +2210,8 @@ function HomePage({
           <ProductsSection onAddToCart={handleAddToCart} />
           <FloatingReviews />
           <GameSection />
+          <TryRiskFree />
+          <PolicyRules />
         </main>
         <Footer />
       </div>
